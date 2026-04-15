@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.owners.internal.data;
+package com.nss.pibblest.modules.owners.internal.infrastructure.data;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;

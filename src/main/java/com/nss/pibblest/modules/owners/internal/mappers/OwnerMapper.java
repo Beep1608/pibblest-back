@@ -3,8 +3,8 @@ package com.nss.pibblest.modules.owners.internal.mappers;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.nss.pibblest.modules.owners.internal.data.OwnerEntity;
-import com.nss.pibblest.modules.owners.internal.dto.OwnerDto;
+import com.nss.pibblest.modules.owners.api.OwnerDto;
+import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
 
 @Mapper(componentModel="spring")

@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.owners.internal.dto;
+package com.nss.pibblest.modules.owners.api;
 
 import java.util.UUID;
 

@@ -7,8 +7,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nss.pibblest.modules.owners.internal.data.OwnerEntity;
-import com.nss.pibblest.modules.owners.internal.data.OwnerRepository;
+import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
+import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
 import com.nss.pibblest.modules.owners.internal.mappers.OwnerMapper;
 import com.nss.pibblest.modules.owners.internal.utils.IdentifierGenerator;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
@@ -35,11 +35,12 @@ public class OwnerService {
     public ResponseEntity<CreateOwnerResponse> registerOwner(CreateOwnerRequest request)
     {
         try {
+            System.out.println(request);
             String organizationCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
             String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
 
-            request.setOrganizationCode(organizationCode);
-            request.setSchemaName(schemaName);
+            //request.setOrganizationCode(organizationCode);
+            //request.setSchemaName(schemaName);
 
             OwnerEntity ownerEntity = ownerMapper.toEntity(request);
 
