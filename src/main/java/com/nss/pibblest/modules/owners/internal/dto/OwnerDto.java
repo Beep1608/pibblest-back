@@ -4,7 +4,8 @@ import java.util.UUID;
 
 public record OwnerDto(
     UUID id,
-    String firstName,
+    String company,
+    String name,
     String lastName,
     String email, 
     String organizationCode

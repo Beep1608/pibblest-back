@@ -19,9 +19,12 @@ public class OwnerEntity {
     @Id
     @GeneratedValue
     private UUID id;
+    
+    @Column(name="company", nullable=false, columnDefinition="TEXT")
+    private String company;
 
-    @Column(name="first_name", nullable=false, length=100)
-    private String firstName;
+    @Column(name="name", nullable=false, length=100)
+    private String name;
 
     @Column(name="last_name", nullable=false, length=100)
     private String lastName;
@@ -55,8 +58,9 @@ public class OwnerEntity {
     protected OwnerEntity() {}
 
 
-    public OwnerEntity(String firstName, String lastName, String email, String password, String organizationCode, String schemaName) {
-        this.firstName = firstName;
+    public OwnerEntity(String company, String name, String lastName, String email, String password, String organizationCode, String schemaName) {
+        this.company = company;
+        this.name = name;
         this.lastName = lastName;
         this.email = email;
         this.password = password;
@@ -72,13 +76,22 @@ public class OwnerEntity {
         this.id = id;
     }
 
-    public String getFirstName() {
-        return firstName;
+     public String getCompany() {
+        return company;
     }
 
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
+    public void setCompany(String company) {
+        this.company = company;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getLastName() {
