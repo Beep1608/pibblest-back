@@ -2,6 +2,7 @@ package com.nss.pibblest.modules.owners.internal.web;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,7 +11,6 @@ import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOw
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;

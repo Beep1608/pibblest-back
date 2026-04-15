@@ -39,10 +39,11 @@ public class OwnerService {
             String organizationCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
             String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
 
-            //request.setOrganizationCode(organizationCode);
-            //request.setSchemaName(schemaName);
+            request.setOrganizationCode(organizationCode);
+            request.setSchemaName(schemaName);
 
             OwnerEntity ownerEntity = ownerMapper.toEntity(request);
+            ownerEntity.setPassword(encoder.encode( ownerEntity.getPassword()));
 
            OwnerEntity ownerCreated =  ownerRepository.save(ownerEntity);
 

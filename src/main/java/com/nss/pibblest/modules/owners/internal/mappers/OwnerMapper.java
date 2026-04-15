@@ -13,7 +13,7 @@ public interface  OwnerMapper {
     OwnerDto toDto(OwnerEntity entity);
 
     @Mapping(target= "id", ignore=true)
-    @Mapping(target= "password", ignore=true)
+   // @Mapping(target= "password", ignore=true)
     @Mapping(target= "isActive", ignore=true)
     @Mapping(target= "lastLogin", ignore=true)
     @Mapping(target= "createdAt", ignore=true)
