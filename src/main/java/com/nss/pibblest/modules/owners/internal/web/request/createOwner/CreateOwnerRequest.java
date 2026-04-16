@@ -8,23 +8,23 @@ import jakarta.validation.constraints.Size;
 
 public class CreateOwnerRequest {
 
-    @NotBlank 
+    @NotBlank(message="{validation.owner.company.notblank}")
     @Schema(description="Nombre de la empresa del propietario", example="Minion Inc.")
     private String company;
 
-    @NotBlank 
+    @NotBlank(message = "{validation.owner.name.notblank}")
     @Schema(description="Nombre del propietario", example="Papoi")
     private String name;
 
-    @NotBlank 
+    @NotBlank(message = "{validation.owner.lastname.notblank}")
     @Schema(description="Apellido del propietario", example="Morales")
     private String lastName;
 
-    @Email @NotBlank 
+    @Email @NotBlank(message = "{validation.owner.email.notblank}")
     @Schema(description="Email del propietario", example="hola@example.com")
     private String email;
 
-    @NotBlank @Size(min = 8) 
+    @NotBlank(message = "{validation.owner.password.notblank}") @Size(min = 8) 
     @Schema(description="Password de la cuenta", example="hola@example.com")
     private String password;
 

@@ -1,12 +1,12 @@
 package com.nss.pibblest.modules.owners.internal.core;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
 import com.nss.pibblest.modules.owners.internal.mappers.OwnerMapper;
@@ -29,36 +29,35 @@ public class OwnerService {
 
 
     //TODO: 
-    // 1. Implementar excepcion personalizada
+    // 
     // 2. Publicacion de eventos ?
     @Transactional
     public ResponseEntity<CreateOwnerResponse> registerOwner(CreateOwnerRequest request)
     {
-        try {
-            System.out.println(request);
-            String organizationCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
-            String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
-
-            request.setOrganizationCode(organizationCode);
-            request.setSchemaName(schemaName);
-
-            OwnerEntity ownerEntity = ownerMapper.toEntity(request);
-            ownerEntity.setPassword(encoder.encode( ownerEntity.getPassword()));
-
-           OwnerEntity ownerCreated =  ownerRepository.save(ownerEntity);
-
-            CreateOwnerResponse responseBody = new CreateOwnerResponse(ownerCreated.getId(), "Owner registrado exitosamente");
-            return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
-        } catch (DataIntegrityViolationException e) {
-            // 5. Retornar ERROR CONOCIDO (HTTP 409 Conflict si ya existe el correo/empresa)
-            // Nota: Aquí lo ideal es que tu CreateOwnerResponse soporte mensajes de error
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(null); 
-            
-        } catch (Exception e) {
-            // 6. Retornar ERROR GENERAL (HTTP 500 Internal Server Error)
-            e.printStackTrace(); // Solo para ver en consola qué reventó
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        
+        if(ownerRepository.existsByEmail(request.getEmail()))
+        {
+            throw new OwnerAlreadyExists("error.owner.email.exists", request.getEmail());
         }
+
+        if(ownerRepository.existsByCompany(request.getCompany()))
+        {
+            throw new OwnerAlreadyExists("error.owner.company.exists", request.getCompany());
+        }
+    
+        String organizationCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
+        String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
+
+        request.setOrganizationCode(organizationCode);
+        request.setSchemaName(schemaName);
+
+        OwnerEntity ownerEntity = ownerMapper.toEntity(request);
+        ownerEntity.setPassword(encoder.encode( ownerEntity.getPassword()));
+
+        OwnerEntity ownerCreated =  ownerRepository.save(ownerEntity);
+
+        CreateOwnerResponse responseBody = new CreateOwnerResponse(ownerCreated.getId(), "Owner registrado exitosamente");
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
     }
 
     

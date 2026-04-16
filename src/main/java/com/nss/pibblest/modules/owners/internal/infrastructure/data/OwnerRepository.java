@@ -8,4 +8,6 @@ public interface OwnerRepository extends JpaRepository<OwnerEntity, UUID> {
     
     boolean existsByEmail(String email);
     boolean existsByOrganizationCode(String organizationCode);
+
+    boolean existsByCompany(String company);
 }
