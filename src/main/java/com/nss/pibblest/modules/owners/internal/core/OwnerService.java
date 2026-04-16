@@ -1,11 +1,13 @@
 package com.nss.pibblest.modules.owners.internal.core;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
@@ -19,12 +21,14 @@ public class OwnerService {
     private final OwnerRepository ownerRepository;
     private final PasswordEncoder encoder;
     private final OwnerMapper ownerMapper;
+    private final ApplicationEventPublisher events;
 
-    public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper)
+    public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper, ApplicationEventPublisher events)
     {
         this.ownerRepository = ownerRepository;
         this.encoder = encoder;
         this.ownerMapper = ownerMapper;
+        this.events = events;
     }
 
 
@@ -55,6 +59,12 @@ public class OwnerService {
         ownerEntity.setPassword(encoder.encode( ownerEntity.getPassword()));
 
         OwnerEntity ownerCreated =  ownerRepository.save(ownerEntity);
+
+        events.publishEvent(new OwnerRegisteredEvent(
+            ownerCreated.getId(), 
+            ownerCreated.getCompany(),
+            ownerCreated.getEmail()
+        ));
 
         CreateOwnerResponse responseBody = new CreateOwnerResponse(ownerCreated.getId(), "Owner registrado exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
