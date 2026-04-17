@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.notifications.internal.core;
+package com.nss.pibblest.modules.notifications.internal.core.owner;
 
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

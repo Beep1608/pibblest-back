@@ -63,7 +63,8 @@ public class OwnerService {
         events.publishEvent(new OwnerRegisteredEvent(
             ownerCreated.getId(), 
             ownerCreated.getCompany(),
-            ownerCreated.getEmail()
+            ownerCreated.getEmail(),
+            ownerCreated.getSchemaName()
         ));
 
         CreateOwnerResponse responseBody = new CreateOwnerResponse(ownerCreated.getId(), "Owner registrado exitosamente");

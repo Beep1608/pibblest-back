@@ -104,6 +104,16 @@
             <artifactId>spring-modulith-events-jackson</artifactId>
         </dependency>
         
+        <dependency>
+            <groupId>org.liquibase</groupId>
+            <artifactId>liquibase-core</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.nss.pibblest-db</groupId>
+            <artifactId>pibblest-db</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <dependencyManagement>
         <dependencies>
