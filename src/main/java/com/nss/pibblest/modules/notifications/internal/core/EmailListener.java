@@ -7,7 +7,7 @@ import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
 
 @Component
 public class EmailListener {
-    
+
 
     @KafkaListener(topics="owners-registered-topic", groupId="notifications-group")
     public void onOwnerRegistered(OwnerRegisteredEvent event)
