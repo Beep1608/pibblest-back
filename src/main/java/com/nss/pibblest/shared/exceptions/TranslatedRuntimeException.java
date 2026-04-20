@@ -1,4 +1,4 @@
-package com.nss.pibblest.shared.internal.exceptions;
+package com.nss.pibblest.shared.exceptions;
 
 public class TranslatedRuntimeException extends RuntimeException {
 

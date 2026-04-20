@@ -1,4 +1,4 @@
-package com.nss.pibblest.shared.internal.web;
+package com.nss.pibblest.shared.web;
 
 import java.util.HashMap;
 import java.util.Locale;
