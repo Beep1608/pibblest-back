@@ -1,13 +1,17 @@
 package com.nss.pibblest.modules.notifications.internal.core.owner;
 
+import java.util.UUID;
+
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.authentication.ott.GenerateOneTimeTokenRequest;
 import org.springframework.stereotype.Component;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
+import com.nss.pibblest.modules.security.internal.core.PersistentOneTimeTokeOwnerService;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -17,10 +21,12 @@ public class EmailListener {
 
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
+    private final PersistentOneTimeTokeOwnerService persistentOneTimeTokeOwnerService;
 
-    public EmailListener(JavaMailSender mailSender, TemplateEngine templateEngine) {
+    public EmailListener(JavaMailSender mailSender, TemplateEngine templateEngine, PersistentOneTimeTokeOwnerService persistentOneTimeTokeOwnerService ) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
+        this.persistentOneTimeTokeOwnerService = persistentOneTimeTokeOwnerService;
     }
 
     @KafkaListener(topics = "owners-registered-topic", groupId = "notifications-group")
@@ -28,14 +34,14 @@ public class EmailListener {
         System.out.println("¡Evento recibido desde Kafka!");
         try {
 
-            sendWelcomeMail(event.email());
+            sendWelcomeMail(event.email(), event.id());
         } catch (Exception e) {
             System.err.println("Error al enviar el correo: " + e.getMessage());
         }
 
     }
 
-    private void sendWelcomeMail(String to) throws MessagingException {
+    private void sendWelcomeMail(String to, UUID uuid) throws MessagingException {
 
         MimeMessage message = mailSender.createMimeMessage();
 
@@ -45,8 +51,10 @@ public class EmailListener {
         helper.setTo(to);
         helper.setSubject("Bienvenido nihao");
 
+        GenerateOneTimeTokenRequest request = new GenerateOneTimeTokenRequest(uuid.toString());
         Context context = new Context();
         context.setVariable("userEmail", to);
+        context.setVariable("userToken",persistentOneTimeTokeOwnerService.generate(request).getTokenValue());
 
         String htmlContent = templateEngine.process("welcome-email", context);
         helper.setText(htmlContent, true);
