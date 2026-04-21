@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nss.pibblest.modules.owners.internal.core.OwnerService;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,6 +46,12 @@ public class OwnerController {
 
         return ownerService.registerOwner(request);
 
+    }
+
+    @PostMapping("/verify")
+
+    public ResponseEntity<VerifyOwnerResponse> verifyOwner(@Valid @RequestBody VerifyOwnerRequest request){
+        return ownerService.verifyOwner(request);
     }
 
     

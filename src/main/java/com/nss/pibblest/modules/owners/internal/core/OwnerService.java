@@ -1,5 +1,8 @@
 package com.nss.pibblest.modules.owners.internal.core;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +18,10 @@ import com.nss.pibblest.modules.owners.internal.mappers.OwnerMapper;
 import com.nss.pibblest.modules.owners.internal.utils.IdentifierGenerator;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
+import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerEntity;
+import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerRepository;
 
 @Service
 public class OwnerService {
@@ -22,13 +29,15 @@ public class OwnerService {
     private final PasswordEncoder encoder;
     private final OwnerMapper ownerMapper;
     private final ApplicationEventPublisher events;
+    private final OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
 
-    public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper, ApplicationEventPublisher events)
+    public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper, ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository)
     {
         this.ownerRepository = ownerRepository;
         this.encoder = encoder;
         this.ownerMapper = ownerMapper;
         this.events = events;
+        this.oneTimeTokenOwnerRepository = oneTimeTokenOwnerRepository;
     }
 
 
@@ -69,6 +78,25 @@ public class OwnerService {
 
         CreateOwnerResponse responseBody = new CreateOwnerResponse(ownerCreated.getId(), "Owner registrado exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
+    }
+
+    public ResponseEntity<VerifyOwnerResponse> verifyOwner(VerifyOwnerRequest request){
+ 
+
+       String tokenValue = new String(request.getToken().getBytes());
+
+       OneTimeTokenOwnerEntity tokenOwnerEntity =  oneTimeTokenOwnerRepository.findByTokenValue(tokenValue).get();
+
+       OwnerEntity ownerEntity  = ownerRepository.findById(tokenOwnerEntity.getOwnerId()).get();
+    
+       ownerEntity.setVerifiedAt(LocalDateTime.now().atZone(ZoneId.systemDefault()));
+       ownerRepository.save(ownerEntity);
+
+       VerifyOwnerResponse response = new VerifyOwnerResponse();
+       response.setMessage(tokenOwnerEntity.getOwnerId().toString());
+
+       return ResponseEntity.status(HttpStatus.OK).body(response);
+
     }
 
     

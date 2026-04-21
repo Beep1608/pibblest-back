@@ -2,6 +2,7 @@ package com.nss.pibblest.modules.notifications.internal.core.owner;
 
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -22,6 +23,9 @@ public class EmailListener {
     private final JavaMailSender mailSender;
     private final TemplateEngine templateEngine;
     private final PersistentOneTimeTokeOwnerService persistentOneTimeTokeOwnerService;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
 
     public EmailListener(JavaMailSender mailSender, TemplateEngine templateEngine, PersistentOneTimeTokeOwnerService persistentOneTimeTokeOwnerService ) {
         this.mailSender = mailSender;
@@ -52,9 +56,13 @@ public class EmailListener {
         helper.setSubject("Bienvenido nihao");
 
         GenerateOneTimeTokenRequest request = new GenerateOneTimeTokenRequest(uuid.toString());
+        String token = persistentOneTimeTokeOwnerService.generate(request).getTokenValue();
+        String frontendVerificationLink = frontendUrl + "/verify-account?token=" + token;
+
         Context context = new Context();
         context.setVariable("userEmail", to);
-        context.setVariable("userToken",persistentOneTimeTokeOwnerService.generate(request).getTokenValue());
+        context.setVariable("userToken",token);
+        context.setVariable("verificationLink", frontendVerificationLink);
 
         String htmlContent = templateEngine.process("welcome-email", context);
         helper.setText(htmlContent, true);

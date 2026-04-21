@@ -32,6 +32,9 @@ public class OwnerEntity {
     @Column(nullable=false, unique=true)
     private String email;
 
+    @Column(name="verified_at" ,nullable=true, unique=false)
+    private ZonedDateTime verifiedAt;
+
     @Column(nullable=false)
     private String password;
 
@@ -164,6 +167,14 @@ public class OwnerEntity {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public ZonedDateTime getVerifiedAt() {
+        return verifiedAt;
+    }
+
+    public void setVerifiedAt(ZonedDateTime verifiedAt) {
+        this.verifiedAt = verifiedAt;
     }
     
     
