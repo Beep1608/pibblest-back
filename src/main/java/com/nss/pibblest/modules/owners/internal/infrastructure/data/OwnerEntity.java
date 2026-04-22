@@ -58,7 +58,7 @@ public class OwnerEntity {
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
-    protected OwnerEntity() {}
+    public OwnerEntity() {}
 
 
     public OwnerEntity(String company, String name, String lastName, String email, String password, String organizationCode, String schemaName) {

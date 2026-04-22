@@ -44,9 +44,7 @@ public class OwnerService {
         this.oneTimeTokenOwnerRepository = oneTimeTokenOwnerRepository;
     }
 
-    // TODO:
-    //
-    // 2. Publicacion de eventos ?
+
     @Transactional
     public ResponseEntity<CreateOwnerResponse> registerOwner(CreateOwnerRequest request) {
 
@@ -80,6 +78,7 @@ public class OwnerService {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
     }
 
+    @Transactional
     public ResponseEntity<VerifyOwnerResponse> verifyOwner(VerifyOwnerRequest request) {
 
  
