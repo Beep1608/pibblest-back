@@ -49,7 +49,6 @@ public class OwnerController {
     }
 
     @PostMapping("/verify")
-
     public ResponseEntity<VerifyOwnerResponse> verifyOwner(@Valid @RequestBody VerifyOwnerRequest request){
         return ownerService.verifyOwner(request);
     }

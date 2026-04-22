@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotExists;
 
 @RestControllerAdvice(basePackages="com.nss.pibblest.modules.owners.internal.web")
 public class OwnerExceptionHandler {
@@ -40,6 +41,25 @@ public class OwnerExceptionHandler {
         response.put("error", errorTitle);
         response.put("message", localizedMessage);
         
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(OwnerNotExists.class)
+    public ResponseEntity<Map<String, Object>> handleOwnerNotExists (OwnerNotExists ex){
+        Locale currentLocale = LocaleContextHolder.getLocale();
+
+        String errorTitle = messageSource.getMessage("error.owner.not.exits.title", null, currentLocale);
+
+        String localizedMessage = messageSource.getMessage( ex.getMessage(),
+            ex.getArgs(), 
+            LocaleContextHolder.getLocale()
+        );
+
+        Map<String,Object> response = new HashMap<>();
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", errorTitle);
+        response.put("message", localizedMessage);
+
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 

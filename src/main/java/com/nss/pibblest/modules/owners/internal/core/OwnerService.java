@@ -12,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyVerified;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotExists;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
 import com.nss.pibblest.modules.owners.internal.mappers.OwnerMapper;
@@ -20,6 +22,8 @@ import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOw
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
+import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenExpired;
+import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenInvalid;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerEntity;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerRepository;
 
@@ -31,8 +35,8 @@ public class OwnerService {
     private final ApplicationEventPublisher events;
     private final OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
 
-    public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper, ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository)
-    {
+    public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper,
+            ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository) {
         this.ownerRepository = ownerRepository;
         this.encoder = encoder;
         this.ownerMapper = ownerMapper;
@@ -40,24 +44,20 @@ public class OwnerService {
         this.oneTimeTokenOwnerRepository = oneTimeTokenOwnerRepository;
     }
 
-
-    //TODO: 
-    // 
+    // TODO:
+    //
     // 2. Publicacion de eventos ?
     @Transactional
-    public ResponseEntity<CreateOwnerResponse> registerOwner(CreateOwnerRequest request)
-    {
-        
-        if(ownerRepository.existsByEmail(request.getEmail()))
-        {
+    public ResponseEntity<CreateOwnerResponse> registerOwner(CreateOwnerRequest request) {
+
+        if (ownerRepository.existsByEmail(request.getEmail())) {
             throw new OwnerAlreadyExists("error.owner.email.exists", request.getEmail());
         }
 
-        if(ownerRepository.existsByCompany(request.getCompany()))
-        {
+        if (ownerRepository.existsByCompany(request.getCompany())) {
             throw new OwnerAlreadyExists("error.owner.company.exists", request.getCompany());
         }
-    
+
         String organizationCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
         String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
 
@@ -65,39 +65,51 @@ public class OwnerService {
         request.setSchemaName(schemaName);
 
         OwnerEntity ownerEntity = ownerMapper.toEntity(request);
-        ownerEntity.setPassword(encoder.encode( ownerEntity.getPassword()));
+        ownerEntity.setPassword(encoder.encode(ownerEntity.getPassword()));
 
-        OwnerEntity ownerCreated =  ownerRepository.save(ownerEntity);
+        OwnerEntity ownerCreated = ownerRepository.save(ownerEntity);
 
         events.publishEvent(new OwnerRegisteredEvent(
-            ownerCreated.getId(), 
-            ownerCreated.getCompany(),
-            ownerCreated.getEmail(),
-            ownerCreated.getSchemaName()
-        ));
+                ownerCreated.getId(),
+                ownerCreated.getCompany(),
+                ownerCreated.getEmail(),
+                ownerCreated.getSchemaName()));
 
-        CreateOwnerResponse responseBody = new CreateOwnerResponse(ownerCreated.getId(), "Owner registrado exitosamente");
+        CreateOwnerResponse responseBody = new CreateOwnerResponse(ownerCreated.getId(),
+                "Owner registrado exitosamente");
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
     }
 
-    public ResponseEntity<VerifyOwnerResponse> verifyOwner(VerifyOwnerRequest request){
+    public ResponseEntity<VerifyOwnerResponse> verifyOwner(VerifyOwnerRequest request) {
+
  
+        String tokenValue = request.getToken();
 
-       String tokenValue = new String(request.getToken().getBytes());
+        OneTimeTokenOwnerEntity tokenOwnerEntity = oneTimeTokenOwnerRepository.findByTokenValue(tokenValue)
+                .orElseThrow(() -> new OneTimeTokenInvalid("error.token.invalid", null));
 
-       OneTimeTokenOwnerEntity tokenOwnerEntity =  oneTimeTokenOwnerRepository.findByTokenValue(tokenValue).get();
 
-       OwnerEntity ownerEntity  = ownerRepository.findById(tokenOwnerEntity.getOwnerId()).get();
-    
-       ownerEntity.setVerifiedAt(LocalDateTime.now().atZone(ZoneId.systemDefault()));
-       ownerRepository.save(ownerEntity);
+        if (tokenOwnerEntity.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new OneTimeTokenExpired("error.token.expired", null);
+        }
 
-       VerifyOwnerResponse response = new VerifyOwnerResponse();
-       response.setMessage(tokenOwnerEntity.getOwnerId().toString());
+        if (tokenOwnerEntity.isUsed()) {
+            throw new OwnerAlreadyVerified("error.owner.already.verified", null);
+        }
 
-       return ResponseEntity.status(HttpStatus.OK).body(response);
+        OwnerEntity ownerEntity = ownerRepository.findById(tokenOwnerEntity.getOwnerId())
+                .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", tokenOwnerEntity.getOwnerId()));
 
+        ownerEntity.setVerifiedAt(LocalDateTime.now().atZone(ZoneId.systemDefault()));
+        ownerRepository.save(ownerEntity);
+
+        tokenOwnerEntity.setUsed(true);
+        oneTimeTokenOwnerRepository.save(tokenOwnerEntity); 
+
+        VerifyOwnerResponse response = new VerifyOwnerResponse("response.verify.owner", ownerEntity.getName());
+        response.setMessage(tokenOwnerEntity.getOwnerId().toString());
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    
 }
