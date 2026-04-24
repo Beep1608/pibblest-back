@@ -1,6 +1,12 @@
 package com.nss.pibblest.modules.owners.internal.web;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,6 +23,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+
 
 @RestController
 @RequestMapping("/api/owners")
@@ -52,6 +59,19 @@ public class OwnerController {
     public ResponseEntity<VerifyOwnerResponse> verifyOwner(@Valid @RequestBody VerifyOwnerRequest request){
         return ownerService.verifyOwner(request);
     }
+
+    @GetMapping("/profile")
+    public ResponseEntity<Map<String,Object>> getMyProfile() {
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+       Map<String,Object> response = new HashMap<>();
+
+       response.put("email", authentication.getName());
+       response.put("message", "El token es valido");
+
+       return ResponseEntity.ok(response);
+    }
+    
 
     
 

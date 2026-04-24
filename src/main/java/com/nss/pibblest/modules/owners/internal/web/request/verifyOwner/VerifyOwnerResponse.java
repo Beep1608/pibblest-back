@@ -1,13 +1,13 @@
 package com.nss.pibblest.modules.owners.internal.web.request.verifyOwner;
 
-import com.nss.pibblest.shared.responses.TranslatedResponse;
 
-public class VerifyOwnerResponse extends TranslatedResponse {
+public class VerifyOwnerResponse  {
 
     private String message;
 
-    public VerifyOwnerResponse(String messageKey, Object... args) {
-        super(messageKey, args);
+    public VerifyOwnerResponse(String message, Object... args) {
+
+        this.message = message;
     }
 
     public String getMessage() {

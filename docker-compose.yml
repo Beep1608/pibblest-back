@@ -24,3 +24,16 @@ services:
     ports:
       - "8025:8025" # Interfaz Web: Accede a http://localhost:8025 para ver tus correos
       - "1025:1025" # Puerto SMTP: Donde Spring Boot enviará los correos
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379" # Puerto estándar de Redis
+    volumes:
+      - redis_data:/data # Guarda los datos en disco para no perder las sesiones al reiniciar
+    restart: unless-stopped # Se reiniciará automáticamente si falla o si reinicias Docker
+
+# Declaración de los volúmenes persistentes
+volumes:
+  redis_data:

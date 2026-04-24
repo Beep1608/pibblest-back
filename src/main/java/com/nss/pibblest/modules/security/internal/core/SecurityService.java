@@ -1,5 +1,7 @@
 package com.nss.pibblest.modules.security.internal.core;
 
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -14,6 +16,7 @@ import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
 import com.nss.pibblest.modules.security.internal.web.request.login.LoginRequest;
 import com.nss.pibblest.modules.security.internal.web.request.login.LoginResponse;
+import com.nss.pibblest.modules.tenant.SessionTrackerService;
 import com.nss.pibblest.modules.tenant.TenantContext;
 
 @Service
@@ -23,13 +26,18 @@ public class SecurityService {
     private final EmployeeRepository employeeRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final MessageSource messageSource;
+    private final SessionTrackerService sessionTrackerService;
 
     public SecurityService(OwnerRepository ownerRepository, EmployeeRepository employeeRepository,
-            PasswordEncoder passwordEncoder, JwtService jwtService) {
+            PasswordEncoder passwordEncoder, JwtService jwtService, MessageSource messageSource,
+            SessionTrackerService sessionTrackerService) {
         this.ownerRepository = ownerRepository;
         this.employeeRepository = employeeRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.messageSource = messageSource;
+        this.sessionTrackerService = sessionTrackerService;
     }
 
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
@@ -45,18 +53,24 @@ public class SecurityService {
     }
 
     private LoginResponse loginOwner(LoginRequest request) {
-        System.out.println("NO EXISTE EL OWNER :");
+      
         OwnerEntity ownerEntity = ownerRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new OwnerBadCredentials("error.owner.bad.credentials", null));
 
-        System.out.println("SI EXISTE EL OWNER : "+ownerEntity.getEmail());
-        if (!passwordEncoder.matches(request.getPassword(), request.getPassword())) {
+        System.out.println("SI EXISTE EL OWNER : " + ownerEntity.getEmail());
+        if (!passwordEncoder.matches(request.getPassword(), ownerEntity.getPassword())) {
             throw new OwnerBadCredentials("error.owner.bad.credentials", null);
         }
 
         String token = jwtService.generateToken(ownerEntity.getId(), ownerEntity.getName(), ownerEntity.getCompany());
 
-        return new LoginResponse("owner.login.success", ownerEntity.getName(), token);
+        String tokenId = jwtService.extractTokenId(token);
+        sessionTrackerService.registerNewSession(ownerEntity.getName(), tokenId);
+      
+        String message = messageSource.getMessage("owner.login.success", new Object[] { ownerEntity.getName() },
+                LocaleContextHolder.getLocale());
+        LoginResponse response = new LoginResponse(message, token);
+        return response;
     }
 
     private LoginResponse loginEmployee(LoginRequest request) {
@@ -79,7 +93,14 @@ public class SecurityService {
 
         String token = jwtService.generateToken(employeeEntity.getId(), employeeEntity.getUsername(),
                 ownerEntity.getCompany());
-        return new LoginResponse("employee.login.success", employeeEntity.getUsername(), token);
+
+        String tokenId = jwtService.extractTokenId(token);
+        
+        sessionTrackerService.registerNewSession(employeeEntity.getUsername(), tokenId);
+
+        String message = messageSource.getMessage("employee.login.success",
+                new Object[] { employeeEntity.getUsername() }, LocaleContextHolder.getLocale());
+        return new LoginResponse(message, token);
 
     }
 

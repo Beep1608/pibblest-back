@@ -26,6 +26,7 @@ public class JwtService {
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
 
+    private static final long EXPIRATION_TIME_IN_MS = 5 * 60 * 1000;
     public String generateToken(UUID employeeId, String username, String owner){
 
         Map<String, Object> extraClaims = new HashMap<>();
@@ -36,11 +37,14 @@ public class JwtService {
             extraClaims.put("owner", owner);
         }
 
+        String tokenId = UUID.randomUUID().toString();
+
         return  Jwts.builder()
                 .claims(extraClaims)
                 .subject(username)
+                .id(tokenId)
                 .issuedAt(new Date(System.currentTimeMillis()))
-                .expiration(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME_IN_MS))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
 
@@ -50,11 +54,15 @@ public class JwtService {
         return extractClaim(token, Claims::getSubject);
     }
 
+    public String extractTokenId(String token){
+        return extractClaim(token, Claims::getId);
+    }
+
     public String extractOwner(String token){
         return extractAllClaims(token).get("owner", String.class);
     }
 
-    private boolean isTokenValid(String token, String username){
+    public boolean isTokenValid(String token, String username){
         final String extractedUsername = extractUsername(token);
 
         return (extractedUsername.equals(username) && !isTokenExpired(token));

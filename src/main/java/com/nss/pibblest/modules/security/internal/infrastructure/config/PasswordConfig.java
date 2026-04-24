@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.owners.internal.infrastructure.config;
+package com.nss.pibblest.modules.security.internal.infrastructure.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
