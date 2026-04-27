@@ -1,10 +1,10 @@
-package com.nss.pibblest.modules.groups.internal.web.requests.createGroup;
+package com.nss.pibblest.modules.tags.internal.web.requests.createGroup;
 
-public class CreateGroupRequest {
+public class CreateTagRequest {
     
     private String name;
 
-    public CreateGroupRequest(String name){
+    public CreateTagRequest(String name){
         this.name = name;
     }
 

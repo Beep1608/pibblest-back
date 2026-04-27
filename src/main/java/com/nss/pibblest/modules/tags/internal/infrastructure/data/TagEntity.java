@@ -1,4 +1,6 @@
-package com.nss.pibblest.modules.groups.internal.infrastructure.data;
+package com.nss.pibblest.modules.tags.internal.infrastructure.data;
+
+import java.time.ZonedDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -7,10 +9,10 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-//TODO: Considerar el nombre de la entidad en @Table()
+
 @Entity
-@Table(name = "regions")
-public class GroupEntity {
+@Table(name = "tags")
+public class TagEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -18,11 +20,14 @@ public class GroupEntity {
 
     @Column(name = "name")
     private String name;
+    
+    @Column(name="deleted_at")
+    private ZonedDateTime deletedAt;
 
-    public GroupEntity(String name ){
+    public TagEntity(String name ){
         this.name = name;
     }
-    public GroupEntity() {
+    public TagEntity() {
     }
 
     public String getName() {
