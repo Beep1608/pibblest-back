@@ -1,22 +1,20 @@
 package com.nss.pibblest.modules.tags.internal.web.requests.createGroup;
 
-import java.util.List;
-
 import com.nss.pibblest.modules.tags.internal.infrastructure.data.TagEntity;
 
 public class CreateTagResponse {
-    List<TagEntity> entitites ;
+    TagEntity tag;
 
-    public CreateTagResponse( List<TagEntity> entitites) {
-        this.entitites = entitites;
+    public CreateTagResponse( TagEntity tag) {
+        this.tag = tag;
     }
 
-    public List<TagEntity> getEntitites() {
-        return entitites;
+    public TagEntity getTag() {
+        return tag;
     }
 
-    public void setEntitites(List<TagEntity> entitites) {
-        this.entitites = entitites;
+    public void setTag(TagEntity tag) {
+        this.tag = tag;
     }
 
 }

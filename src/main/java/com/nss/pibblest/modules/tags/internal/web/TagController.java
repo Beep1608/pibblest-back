@@ -1,6 +1,8 @@
 package com.nss.pibblest.modules.tags.internal.web;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,6 +13,7 @@ import com.nss.pibblest.modules.tags.internal.web.requests.assignTag.AssignTagRe
 import com.nss.pibblest.modules.tags.internal.web.requests.assignTag.AssignTagResponse;
 import com.nss.pibblest.modules.tags.internal.web.requests.createGroup.CreateTagRequest;
 import com.nss.pibblest.modules.tags.internal.web.requests.createGroup.CreateTagResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.getAllTags.GetAllTagsResponse;
 
 import jakarta.validation.Valid;
 
@@ -36,6 +39,12 @@ public class TagController {
     public ResponseEntity<AssignTagResponse> assignTagToStore(@Valid @RequestBody AssignTagRequest request){
 
         return tagService.assignTagToStore(request);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<GetAllTagsResponse> getAllTags(Pageable pageable){
+
+        return tagService.getAllTags(pageable);
     }
 
 
