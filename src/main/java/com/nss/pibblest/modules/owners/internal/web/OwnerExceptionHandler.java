@@ -13,8 +13,9 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotExists;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotVerifed;
 
-@RestControllerAdvice(basePackages="com.nss.pibblest.modules.owners.internal.web")
+@RestControllerAdvice(basePackages={"com.nss.pibblest.modules.owners.internal.web", "com.nss.pibblest.modules.security.internal.web"})
 public class OwnerExceptionHandler {
     
     private final MessageSource messageSource;
@@ -61,6 +62,20 @@ public class OwnerExceptionHandler {
         response.put("message", localizedMessage);
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+    @ExceptionHandler(OwnerNotVerifed.class)
+    public ResponseEntity<Map<String, Object>> handleOwnerNotVerified(OwnerNotVerifed ex){
+
+        Locale currentLocale = LocaleContextHolder.getLocale();
+
+        String errorTitle = messageSource.getMessage(ex.getMessageKey(), null,currentLocale);
+
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("status", HttpStatus.FORBIDDEN.value());
+        response.put("error", errorTitle);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+
     }
 
 }

@@ -12,6 +12,7 @@ import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeE
 import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeRepository;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerBadCredentials;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotExists;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotVerifed;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
 import com.nss.pibblest.modules.security.internal.web.request.login.LoginRequest;
@@ -42,6 +43,7 @@ public class SecurityService {
 
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
 
+       
         if (request.getOrganizationCode() == null || request.getOrganizationCode().isBlank()) {
 
             ResponseEntity<LoginResponse> response = ResponseEntity.status(HttpStatus.OK).body(loginOwner(request));
@@ -57,7 +59,12 @@ public class SecurityService {
         OwnerEntity ownerEntity = ownerRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new OwnerBadCredentials("error.owner.bad.credentials", null));
 
-        System.out.println("SI EXISTE EL OWNER : " + ownerEntity.getEmail());
+            
+        if(ownerEntity.getVerifiedAt() == null){
+        
+            throw new OwnerNotVerifed("error.owner.not.verified", null);
+        }
+
         if (!passwordEncoder.matches(request.getPassword(), ownerEntity.getPassword())) {
             throw new OwnerBadCredentials("error.owner.bad.credentials", null);
         }

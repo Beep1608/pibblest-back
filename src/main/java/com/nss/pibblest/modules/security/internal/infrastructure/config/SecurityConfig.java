@@ -25,7 +25,7 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/login", "/api/owners/register").permitAll()
+                .requestMatchers("/api/login", "/api/owners/register","/api/owners/verify" ).permitAll()
             .requestMatchers(
                 "/api/swagger-ui",      // Tu ruta personalizada en properties
                 "/swagger-ui.html",     // Ruta legacy de redirección

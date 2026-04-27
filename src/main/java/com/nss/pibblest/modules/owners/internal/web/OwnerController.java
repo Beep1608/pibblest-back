@@ -36,7 +36,7 @@ public class OwnerController {
         this.ownerService = ownerService;
     }
 
-    @PostMapping
+    @PostMapping("/register")
     @Operation(
         summary="Registrar un owner",
         description="Registar un owner en identity"
