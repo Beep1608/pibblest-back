@@ -4,6 +4,9 @@ public class ResendTokenResponse {
 
     private String message;
 
+    public ResendTokenResponse(String message){
+        this.message = message;
+    }
     public String getMessage() {
         return message;
     }

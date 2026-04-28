@@ -4,12 +4,15 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nss.pibblest.modules.owners.api.events.OwnerGenerateVerifyToken;
 import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyVerified;
@@ -36,14 +39,16 @@ public class OwnerService {
     private final OwnerMapper ownerMapper;
     private final ApplicationEventPublisher events;
     private final OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
+    private final MessageSource messageSource;
 
     public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper,
-            ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository) {
+            ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository, MessageSource messageSource) {
         this.ownerRepository = ownerRepository;
         this.encoder = encoder;
         this.ownerMapper = ownerMapper;
         this.events = events;
         this.oneTimeTokenOwnerRepository = oneTimeTokenOwnerRepository;
+        this.messageSource = messageSource;
     }
 
 
@@ -114,8 +119,18 @@ public class OwnerService {
     }
 
     //TODO: Implementar el servicio para volver a mandar el token
+    //TODO: Limitar el envio de correos de confirmacion
     public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request){
-        
+       OwnerEntity ownerEntity =  ownerRepository.findByEmail(request.getEmail())
+        .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", request.getEmail()));
+
+        events.publishEvent(new OwnerGenerateVerifyToken(ownerEntity.getEmail(), ownerEntity.getId()));
+
+        String message = messageSource.getMessage("response.resend.token.owner", null,LocaleContextHolder.getLocale());
+
+        ResendTokenResponse response = new ResendTokenResponse(message);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }
