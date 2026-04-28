@@ -20,6 +20,8 @@ import com.nss.pibblest.modules.owners.internal.mappers.OwnerMapper;
 import com.nss.pibblest.modules.owners.internal.utils.IdentifierGenerator;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenResponse;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
 import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenExpired;
@@ -109,6 +111,11 @@ public class OwnerService {
         response.setMessage(tokenOwnerEntity.getOwnerId().toString());
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    //TODO: Implementar el servicio para volver a mandar el token
+    public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request){
+        
     }
 
 }

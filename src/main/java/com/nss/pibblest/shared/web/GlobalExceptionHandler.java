@@ -7,6 +7,7 @@ import java.util.Map;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -54,4 +55,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
 
     }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<Map<String,Object>> handlePropertyReferenceException(PropertyReferenceException ex){
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String errorTitle = messageSource.getMessage("error.properties.reference.title",null, locale);
+
+        String errorMessage = messageSource.getMessage("error.properties.reference.message", new Object[]{ ex.getPropertyName()},locale);
+
+        Map<String,Object> response = new HashMap<>();
+
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error",errorTitle);
+        response.put("message", errorMessage);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
 }

@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nss.pibblest.modules.owners.internal.core.OwnerService;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenResponse;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
 
@@ -58,6 +60,12 @@ public class OwnerController {
     @PostMapping("/verify")
     public ResponseEntity<VerifyOwnerResponse> verifyOwner(@Valid @RequestBody VerifyOwnerRequest request){
         return ownerService.verifyOwner(request);
+    }
+
+   
+    @PostMapping("/resend-token")
+    public ResponseEntity<ResendTokenResponse> resendToken(@Valid @RequestBody ResendTokenRequest request){
+        return ownerService.resendToken(request);
     }
 
     @GetMapping("/profile")

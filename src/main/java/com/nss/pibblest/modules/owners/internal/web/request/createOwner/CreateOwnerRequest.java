@@ -20,7 +20,7 @@ public class CreateOwnerRequest {
     @Schema(description="Apellido del propietario", example="Morales")
     private String lastName;
 
-    @Email @NotBlank(message = "{validation.owner.email.notblank}")
+    @Email(message="{validation.owner.email.format}") @NotBlank(message = "{validation.owner.email.notblank}")
     @Schema(description="Email del propietario", example="hola@example.com")
     private String email;
 
