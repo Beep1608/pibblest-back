@@ -10,14 +10,17 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import com.nss.pibblest.modules.security.internal.web.filters.JwtAuthenticationFilter;
+import com.nss.pibblest.modules.tenant.filters.TenantFilter;
 
 @Configuration
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthFilter; 
+    private final TenantFilter tenantFilter;
     
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter){
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, TenantFilter tenantFilter){
         this.jwtAuthFilter = jwtAuthFilter;
+        this.tenantFilter = tenantFilter;
     } 
 
     @Bean
@@ -42,6 +45,7 @@ public class SecurityConfig {
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(tenantFilter, jwtAuthFilter.getClass())
             .httpBasic(basic ->basic.disable());
 
         return http.build();

@@ -47,10 +47,13 @@ public class EmailListener {
     public void onOwnerRegistered(OwnerRegisteredEvent event) {
         System.out.println("¡Evento recibido desde Kafka!");
         try {
+            //TenantContext.setCurrentTenant(event.schemaName());
 
             sendWelcomeMail(event.email(), event.id());
         } catch (Exception e) {
             System.err.println("Error al enviar el correo: " + e.getMessage());
+        }finally{
+           // TenantContext.clear();
         }
 
     }

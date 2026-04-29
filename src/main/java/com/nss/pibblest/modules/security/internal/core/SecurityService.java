@@ -69,7 +69,7 @@ public class SecurityService {
             throw new OwnerBadCredentials("error.owner.bad.credentials", null);
         }
 
-        String token = jwtService.generateToken(ownerEntity.getId(), ownerEntity.getName(), ownerEntity.getCompany());
+        String token = jwtService.generateToken(ownerEntity.getId(), ownerEntity.getName(), ownerEntity.getSchemaName());
 
         String tokenId = jwtService.extractTokenId(token);
         sessionTrackerService.registerNewSession(ownerEntity.getName(), tokenId);
@@ -98,8 +98,7 @@ public class SecurityService {
             throw new EmployeeBadCredentials("error.employee.bad.credentials", null);
         }
 
-        String token = jwtService.generateToken(employeeEntity.getId(), employeeEntity.getUsername(),
-                ownerEntity.getCompany());
+        String token = jwtService.generateToken(employeeEntity.getId(), employeeEntity.getUsername(),ownerEntity.getSchemaName());
 
         String tokenId = jwtService.extractTokenId(token);
         

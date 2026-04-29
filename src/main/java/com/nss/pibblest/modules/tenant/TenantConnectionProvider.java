@@ -2,22 +2,24 @@ package com.nss.pibblest.modules.tenant;
 
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
+import org.hibernate.cfg.AvailableSettings;
 import org.hibernate.engine.jdbc.connections.spi.MultiTenantConnectionProvider;
+import org.springframework.boot.hibernate.autoconfigure.HibernatePropertiesCustomizer;
 import org.springframework.stereotype.Component;
 
-
 @Component
-public class TenantIdentifierResolver implements MultiTenantConnectionProvider<String>{
+public class TenantConnectionProvider implements MultiTenantConnectionProvider<String>, HibernatePropertiesCustomizer {
 
     private DataSource dataSource;
 
-    public TenantIdentifierResolver(DataSource dataSource){
+    public TenantConnectionProvider(DataSource dataSource) {
         this.dataSource = dataSource;
     }
-
 
     @Override
     public boolean isUnwrappableAs(Class<?> unwrapType) {
@@ -36,26 +38,35 @@ public class TenantIdentifierResolver implements MultiTenantConnectionProvider<S
 
     @Override
     public void releaseAnyConnection(Connection connection) throws SQLException {
-       connection.close();
+        connection.close();
     }
 
     @Override
     public Connection getConnection(String tenantIdentifier) throws SQLException {
         Connection connection = dataSource.getConnection();
-        connection.setSchema(tenantIdentifier);
+
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("SET search_path TO \"" + tenantIdentifier + "\"");
+        }
         return connection;
     }
 
     @Override
     public void releaseConnection(String tenantIdentifier, Connection connection) throws SQLException {
-       connection.setSchema("identity");
-       connection.close();
+        try (Statement statement = connection.createStatement()) {
+            statement.execute("SET search_path TO identity"); 
+        }
+        connection.close();
     }
 
     @Override
     public boolean supportsAggressiveRelease() {
-       return false;
+        return false;
     }
 
-    
+    @Override
+    public void customize(Map<String, Object> hibernateProperties) {
+      hibernateProperties.put(AvailableSettings.MULTI_TENANT_CONNECTION_PROVIDER, this);
+    }
+
 }

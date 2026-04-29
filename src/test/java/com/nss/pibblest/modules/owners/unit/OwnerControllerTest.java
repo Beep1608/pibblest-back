@@ -53,7 +53,8 @@ public class OwnerControllerTest {
     @Test
     @DisplayName("Debe retornar 200 Ok cuando el servicio verifica con éxito")
     void verifyOwner_Returns200_WhenSuccess() throws Exception {
-        VerifyOwnerResponse response  =new VerifyOwnerResponse("response.verify.owner", "Miau");
+
+        VerifyOwnerResponse response  =new VerifyOwnerResponse("response.verify.owner");
         response.setMessage(UUID.randomUUID().toString());
 
         ResponseEntity<VerifyOwnerResponse> responseEntity  = ResponseEntity.status(HttpStatus.OK).body(response);
