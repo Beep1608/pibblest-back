@@ -55,6 +55,7 @@ public class EmailListener {
 
     }
 
+    @KafkaListener(topics="owners-resend-verification-token", groupId="emails-group")
     public void onGenerateVerifyToken(OwnerGenerateVerifyToken event){
          try {
              sendResendTokenToVerifyOwner(event.email(), event.id());

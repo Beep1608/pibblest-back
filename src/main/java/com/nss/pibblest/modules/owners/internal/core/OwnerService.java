@@ -5,6 +5,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -42,6 +43,8 @@ public class OwnerService {
     private final ApplicationEventPublisher events;
     private final OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
     private final MessageSource messageSource;
+    @Value("${time.to.wait.resend.token}")
+    private long timeToWaitForNextResend;
 
     public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper,
             ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository,
@@ -112,27 +115,31 @@ public class OwnerService {
         tokenOwnerEntity.setUsed(true);
         oneTimeTokenOwnerRepository.save(tokenOwnerEntity);
 
-        VerifyOwnerResponse response = new VerifyOwnerResponse("response.verify.owner", ownerEntity.getName());
-        response.setMessage(tokenOwnerEntity.getOwnerId().toString());
+        String message = messageSource.getMessage("response.verify.owner",new Object[]{ownerEntity.getName()}, LocaleContextHolder.getLocale());
+        VerifyOwnerResponse response = new VerifyOwnerResponse(message);
+   
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    // TODO: Implementar el servicio para volver a mandar el token
-    // TODO: Limitar el envio de correos de confirmacion
+
+    @Transactional
     public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request) {
         Optional<OwnerEntity> ownerEntity = ownerRepository.findByEmail(request.getEmail());
 
         ownerEntity.ifPresent(owner -> {
+            boolean isAlreadyVerified = owner.getVerifiedAt() != null;
+
+
             boolean canRequestNewToken = oneTimeTokenOwnerRepository
                     .findTopByOwnerIdOrderByCreatedAtDesc(owner.getId())
                     .map(latestToken -> {
-                        ZonedDateTime cooldownEnd = latestToken.getCreatedAt().plusMinutes(5);
+                        ZonedDateTime cooldownEnd = latestToken.getCreatedAt().plusMinutes(timeToWaitForNextResend);
                         return ZonedDateTime.now().isAfter(cooldownEnd);
                     })
                     .orElse(true);
 
-            if (canRequestNewToken) {
+            if (canRequestNewToken && !isAlreadyVerified) {
                 oneTimeTokenOwnerRepository.expireAllActiveTokensByOwnerId(owner.getId());
 
                 events.publishEvent(new OwnerGenerateVerifyToken(owner.getEmail(), owner.getId()));

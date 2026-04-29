@@ -5,7 +5,7 @@ public class VerifyOwnerResponse  {
 
     private String message;
 
-    public VerifyOwnerResponse(String message, Object... args) {
+    public VerifyOwnerResponse(String message) {
 
         this.message = message;
     }
