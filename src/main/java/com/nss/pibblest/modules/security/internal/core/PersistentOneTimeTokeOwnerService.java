@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -54,8 +55,8 @@ public class PersistentOneTimeTokeOwnerService implements OneTimeTokenService {
         secureRandom.nextBytes(randomBytes);
         String tokenValue = Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
 
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime expireAt = now.plusMinutes(2);
+        ZonedDateTime now = ZonedDateTime.now();
+        ZonedDateTime expireAt = now.plusMinutes(2);
 
         OneTimeTokenOwnerEntity entity = new OneTimeTokenOwnerEntity();
         entity.setTokenValue(tokenValue);
@@ -75,7 +76,7 @@ public class PersistentOneTimeTokeOwnerService implements OneTimeTokenService {
             throw new RuntimeException("No se pudo generar el token de acceso en este momento. Intente más tarde.");
         }
 
-        return new DefaultOneTimeToken(tokenValue, requestedUser, expireAt.atZone(ZoneId.systemDefault()).toInstant());
+        return new DefaultOneTimeToken(tokenValue, requestedUser, expireAt.toInstant());
     }
 
     @Override

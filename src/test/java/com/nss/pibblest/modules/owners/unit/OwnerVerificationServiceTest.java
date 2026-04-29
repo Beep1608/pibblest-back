@@ -1,6 +1,7 @@
 package com.nss.pibblest.modules.owners.unit;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -65,7 +66,7 @@ public class OwnerVerificationServiceTest {
         mockTokenEntity.setTokenValue(VALID_TOKEN);
         mockTokenEntity.setUsed(false);
 
-        mockTokenEntity.setExpiresAt(LocalDateTime.now().plusMinutes(5)); 
+        mockTokenEntity.setExpiresAt(ZonedDateTime.now().plusMinutes(5)); 
 
         mockOwnerEntity = new OwnerEntity();
         mockOwnerEntity.setId(OWNER_ID);
@@ -113,7 +114,7 @@ public class OwnerVerificationServiceTest {
     @DisplayName("Debe lanzar OneTimeTokenExpired si la fecha ya pasó")
     void testVerifyOwner_TokenExpired() {
        
-        mockTokenEntity.setExpiresAt(LocalDateTime.now().minusMinutes(1));
+        mockTokenEntity.setExpiresAt(ZonedDateTime.now().minusMinutes(1));
         
         when(oneTimeTokenOwnerRepository.findByTokenValue(VALID_TOKEN))
                 .thenReturn(Optional.of(mockTokenEntity));

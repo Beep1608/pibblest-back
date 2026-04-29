@@ -2,6 +2,8 @@ package com.nss.pibblest.modules.owners.internal.core;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Optional;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.MessageSource;
@@ -42,7 +44,8 @@ public class OwnerService {
     private final MessageSource messageSource;
 
     public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper,
-            ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository, MessageSource messageSource) {
+            ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository,
+            MessageSource messageSource) {
         this.ownerRepository = ownerRepository;
         this.encoder = encoder;
         this.ownerMapper = ownerMapper;
@@ -50,7 +53,6 @@ public class OwnerService {
         this.oneTimeTokenOwnerRepository = oneTimeTokenOwnerRepository;
         this.messageSource = messageSource;
     }
-
 
     @Transactional
     public ResponseEntity<CreateOwnerResponse> registerOwner(CreateOwnerRequest request) {
@@ -88,14 +90,12 @@ public class OwnerService {
     @Transactional
     public ResponseEntity<VerifyOwnerResponse> verifyOwner(VerifyOwnerRequest request) {
 
- 
         String tokenValue = request.getToken();
 
         OneTimeTokenOwnerEntity tokenOwnerEntity = oneTimeTokenOwnerRepository.findByTokenValue(tokenValue)
                 .orElseThrow(() -> new OneTimeTokenInvalid("error.token.invalid", null));
 
-
-        if (tokenOwnerEntity.getExpiresAt().isBefore(LocalDateTime.now())) {
+        if (tokenOwnerEntity.getExpiresAt().isBefore(ZonedDateTime.now())) {
             throw new OneTimeTokenExpired("error.token.expired", null);
         }
 
@@ -110,7 +110,7 @@ public class OwnerService {
         ownerRepository.save(ownerEntity);
 
         tokenOwnerEntity.setUsed(true);
-        oneTimeTokenOwnerRepository.save(tokenOwnerEntity); 
+        oneTimeTokenOwnerRepository.save(tokenOwnerEntity);
 
         VerifyOwnerResponse response = new VerifyOwnerResponse("response.verify.owner", ownerEntity.getName());
         response.setMessage(tokenOwnerEntity.getOwnerId().toString());
@@ -118,15 +118,28 @@ public class OwnerService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    //TODO: Implementar el servicio para volver a mandar el token
-    //TODO: Limitar el envio de correos de confirmacion
-    public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request){
-       OwnerEntity ownerEntity =  ownerRepository.findByEmail(request.getEmail())
-        .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", request.getEmail()));
+    // TODO: Implementar el servicio para volver a mandar el token
+    // TODO: Limitar el envio de correos de confirmacion
+    public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request) {
+        Optional<OwnerEntity> ownerEntity = ownerRepository.findByEmail(request.getEmail());
 
-        events.publishEvent(new OwnerGenerateVerifyToken(ownerEntity.getEmail(), ownerEntity.getId()));
+        ownerEntity.ifPresent(owner -> {
+            boolean canRequestNewToken = oneTimeTokenOwnerRepository
+                    .findTopByOwnerIdOrderByCreatedAtDesc(owner.getId())
+                    .map(latestToken -> {
+                        ZonedDateTime cooldownEnd = latestToken.getCreatedAt().plusMinutes(5);
+                        return ZonedDateTime.now().isAfter(cooldownEnd);
+                    })
+                    .orElse(true);
 
-        String message = messageSource.getMessage("response.resend.token.owner", null,LocaleContextHolder.getLocale());
+            if (canRequestNewToken) {
+                oneTimeTokenOwnerRepository.expireAllActiveTokensByOwnerId(owner.getId());
+
+                events.publishEvent(new OwnerGenerateVerifyToken(owner.getEmail(), owner.getId()));
+            }
+        });
+
+        String message = messageSource.getMessage("response.resend.token.owner", null, LocaleContextHolder.getLocale());
 
         ResendTokenResponse response = new ResendTokenResponse(message);
 
