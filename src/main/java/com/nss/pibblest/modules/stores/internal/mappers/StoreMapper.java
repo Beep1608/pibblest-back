@@ -25,5 +25,6 @@ public interface  StoreMapper {
     StoreEntity toEntity(CreateStoreRequest request);
 
 
+    @Mapping(target="createdAt", source="createdAt", dateFormat="dd/MM/yyyy")
     StoreDto toDto(StoreEntity entity);
 }
