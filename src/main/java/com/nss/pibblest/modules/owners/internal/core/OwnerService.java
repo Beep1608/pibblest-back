@@ -30,6 +30,7 @@ import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTo
 import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenResponse;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
+import com.nss.pibblest.modules.security.internal.core.JwtService;
 import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenExpired;
 import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenInvalid;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerEntity;
@@ -42,18 +43,20 @@ public class OwnerService {
     private final OwnerMapper ownerMapper;
     private final ApplicationEventPublisher events;
     private final OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
+    private final JwtService jwtService;
     private final MessageSource messageSource;
     @Value("${time.to.wait.resend.token}")
     private long timeToWaitForNextResend;
 
     public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper,
             ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository,
-            MessageSource messageSource) {
+            JwtService jwtService, MessageSource messageSource) {
         this.ownerRepository = ownerRepository;
         this.encoder = encoder;
         this.ownerMapper = ownerMapper;
         this.events = events;
         this.oneTimeTokenOwnerRepository = oneTimeTokenOwnerRepository;
+        this.jwtService = jwtService;
         this.messageSource = messageSource;
     }
 
@@ -85,17 +88,16 @@ public class OwnerService {
                 ownerCreated.getEmail(),
                 ownerCreated.getSchemaName()));
 
-        CreateOwnerResponse responseBody = new CreateOwnerResponse(ownerCreated.getId(),
-                "Owner registrado exitosamente");
+        String token = jwtService.generateToken(ownerCreated.getId(), ownerCreated.getName(), ownerCreated.getSchemaName());
+        String message = messageSource.getMessage("response.created.owner", null,LocaleContextHolder.getLocale());
+        CreateOwnerResponse responseBody = new CreateOwnerResponse(message,token);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
     }
 
     @Transactional
-    public ResponseEntity<VerifyOwnerResponse> verifyOwner(VerifyOwnerRequest request) {
+    public ResponseEntity<VerifyOwnerResponse> verifyOwner(String token) {
 
-        String tokenValue = request.getToken();
-
-        OneTimeTokenOwnerEntity tokenOwnerEntity = oneTimeTokenOwnerRepository.findByTokenValue(tokenValue)
+        OneTimeTokenOwnerEntity tokenOwnerEntity = oneTimeTokenOwnerRepository.findByTokenValue(token)
                 .orElseThrow(() -> new OneTimeTokenInvalid("error.token.invalid", null));
 
         if (tokenOwnerEntity.getExpiresAt().isBefore(ZonedDateTime.now())) {
@@ -115,13 +117,12 @@ public class OwnerService {
         tokenOwnerEntity.setUsed(true);
         oneTimeTokenOwnerRepository.save(tokenOwnerEntity);
 
-        String message = messageSource.getMessage("response.verify.owner",new Object[]{ownerEntity.getName()}, LocaleContextHolder.getLocale());
+        String message = messageSource.getMessage("response.verify.owner", new Object[] { ownerEntity.getName() },
+                LocaleContextHolder.getLocale());
         VerifyOwnerResponse response = new VerifyOwnerResponse(message);
-   
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
-
 
     @Transactional
     public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request) {
@@ -129,7 +130,6 @@ public class OwnerService {
 
         ownerEntity.ifPresent(owner -> {
             boolean isAlreadyVerified = owner.getVerifiedAt() != null;
-
 
             boolean canRequestNewToken = oneTimeTokenOwnerRepository
                     .findTopByOwnerIdOrderByCreatedAtDesc(owner.getId())

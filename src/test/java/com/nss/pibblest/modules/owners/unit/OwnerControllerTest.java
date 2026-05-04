@@ -58,7 +58,7 @@ public class OwnerControllerTest {
         response.setMessage(UUID.randomUUID().toString());
 
         ResponseEntity<VerifyOwnerResponse> responseEntity  = ResponseEntity.status(HttpStatus.OK).body(response);
-        when(ownerService.verifyOwner(any(VerifyOwnerRequest.class))).thenReturn(responseEntity);
+        when(ownerService.verifyOwner(any(String.class))).thenReturn(responseEntity);
 
         mockMvc.perform(post("/api/owners/verify") 
             .contentType(MediaType.APPLICATION_JSON)
@@ -72,7 +72,7 @@ public class OwnerControllerTest {
     @DisplayName("Debe retornar 409 Conflict cuando el servicio lanza OneTimeTokenExpired")
     void verifyOwner_Returns409_WhenTokenExpired() throws Exception {
       
-        when(ownerService.verifyOwner(any(VerifyOwnerRequest.class)))
+        when(ownerService.verifyOwner(any(String.class)))
                 .thenThrow(new OneTimeTokenExpired("error.token.expired", null));
 
       
@@ -87,7 +87,7 @@ public class OwnerControllerTest {
     @DisplayName("Debe retornar 400 Bad Request cuando el servicio lanza OneTimeTokenInvalid")
     void verifyOwner_Returns400_WhenTokenInvalid() throws Exception {
   
-        when(ownerService.verifyOwner(any(VerifyOwnerRequest.class)))
+        when(ownerService.verifyOwner(any(String.class)))
                 .thenThrow(new OneTimeTokenInvalid("error.token.invalid", null));
 
 

@@ -80,7 +80,7 @@ public class EmailListener {
 
         GenerateOneTimeTokenRequest request = new GenerateOneTimeTokenRequest(uuid.toString());
         String token = persistentOneTimeTokeOwnerService.generate(request).getTokenValue();
-        String frontendVerificationLink = frontendUrl + "/verify-account?token=" + token;
+        String frontendVerificationLink = frontendUrl + "/verify?token=" + token;
 
         Context context = new Context();
         context.setVariable("userEmail", to);
@@ -107,7 +107,7 @@ public class EmailListener {
 
         GenerateOneTimeTokenRequest request = new GenerateOneTimeTokenRequest(uuid.toString());
         String token = persistentOneTimeTokeOwnerService.generate(request).getTokenValue();
-        String frontendVerificationLink = frontendUrl + "/verify-account?token=" + token;
+        String frontendVerificationLink = frontendUrl + "/verify?token=" + token;
 
         Context context = new Context();
         context.setVariable("userEmail", to);

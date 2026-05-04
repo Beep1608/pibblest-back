@@ -27,14 +27,14 @@ public class JwtService {
     private long jwtExpiration;
 
     private static final long EXPIRATION_TIME_IN_MS = 5 * 60 * 1000;
-    public String generateToken(UUID employeeId, String username, String owner){
+    public String generateToken(UUID employeeId, String username, String schema_name){
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("employeeId", employeeId);
         extraClaims.put("username", username);
 
-        if(owner != null && !owner.isBlank()){
-            extraClaims.put("owner", owner);
+        if(schema_name != null && !schema_name.isBlank()){
+            extraClaims.put("owner", schema_name);
         }
 
         String tokenId = UUID.randomUUID().toString();

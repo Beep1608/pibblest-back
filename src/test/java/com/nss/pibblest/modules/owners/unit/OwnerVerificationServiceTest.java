@@ -51,15 +51,14 @@ public class OwnerVerificationServiceTest {
     private final String VALID_TOKEN = "token-secreto-123";
     private final UUID OWNER_ID = UUID.randomUUID();
     
-    private VerifyOwnerRequest request;
+
     private OneTimeTokenOwnerEntity mockTokenEntity;
     private OwnerEntity mockOwnerEntity;
 
 
     @BeforeEach
     void setUp() {
-        request = new VerifyOwnerRequest();
-        request.setToken(VALID_TOKEN);
+    
 
         mockTokenEntity = new OneTimeTokenOwnerEntity();
         mockTokenEntity.setOwnerId(OWNER_ID);
@@ -82,7 +81,7 @@ public class OwnerVerificationServiceTest {
         when(ownerRepository.findById(OWNER_ID))
                 .thenReturn(Optional.of(mockOwnerEntity));
 
-        VerifyOwnerResponse response = ownerService.verifyOwner(request).getBody();
+        VerifyOwnerResponse response = ownerService.verifyOwner(VALID_TOKEN).getBody();
 
         assertNotNull(response);
         assertEquals(OWNER_ID.toString(), response.getMessage());
@@ -103,7 +102,7 @@ public class OwnerVerificationServiceTest {
                 .thenReturn(Optional.empty());
 
         assertThrows(OneTimeTokenInvalid.class, () -> {
-            ownerService.verifyOwner(request);
+            ownerService.verifyOwner(VALID_TOKEN);
         });
 
         verify(ownerRepository, never()).findById(any());
@@ -120,7 +119,7 @@ public class OwnerVerificationServiceTest {
                 .thenReturn(Optional.of(mockTokenEntity));
 
         assertThrows(OneTimeTokenExpired.class, () -> {
-            ownerService.verifyOwner(request);
+            ownerService.verifyOwner(VALID_TOKEN);
         });
 
         verify(ownerRepository, never()).save(any());
@@ -137,7 +136,7 @@ public class OwnerVerificationServiceTest {
 
 
         assertThrows(OwnerAlreadyVerified.class, () -> {
-            ownerService.verifyOwner(request);
+            ownerService.verifyOwner(VALID_TOKEN);
         });
         
         verify(ownerRepository, never()).save(any());
@@ -155,7 +154,7 @@ public class OwnerVerificationServiceTest {
 
 
         assertThrows(OwnerNotExists.class, () -> {
-            ownerService.verifyOwner(request);
+            ownerService.verifyOwner(VALID_TOKEN);
         });
 
 

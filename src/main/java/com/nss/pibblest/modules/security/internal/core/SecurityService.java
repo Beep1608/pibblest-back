@@ -59,11 +59,14 @@ public class SecurityService {
         OwnerEntity ownerEntity = ownerRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new OwnerBadCredentials("error.owner.bad.credentials", null));
 
-            
-        if(ownerEntity.getVerifiedAt() == null){
         
-            throw new OwnerNotVerifed("error.owner.not.verified", null);
-        }
+        //No sé si debería evitar el login si el usuario no ha sido verificado. 
+        // Por temas comerciales no lo haré (por el momento tal vez).
+        
+        //if(ownerEntity.getVerifiedAt() == null){
+        //
+        //    throw new OwnerNotVerifed("error.owner.not.verified", null);
+        //}
 
         if (!passwordEncoder.matches(request.getPassword(), ownerEntity.getPassword())) {
             throw new OwnerBadCredentials("error.owner.bad.credentials", null);
