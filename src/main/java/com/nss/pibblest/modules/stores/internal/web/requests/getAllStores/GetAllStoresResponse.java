@@ -4,11 +4,11 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 
-import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
 
 public class GetAllStoresResponse {
 
-    private List<StoreDto> stores;
+    private List<StorePreviewDto> stores;
 
     private int pageNo;
     private int pageSize;
@@ -16,7 +16,7 @@ public class GetAllStoresResponse {
     private int totalPages;
     private boolean last;
 
-    public GetAllStoresResponse(Page<StoreDto> page) {
+    public GetAllStoresResponse(Page<StorePreviewDto> page) {
         this.stores = page.getContent();
         this.pageNo = page.getNumber();
         this.pageSize = page.getSize();
@@ -25,11 +25,11 @@ public class GetAllStoresResponse {
         this.last = page.isLast();
     }
 
-    public List<StoreDto> getStores() {
+    public List<StorePreviewDto> getStores() {
         return stores;
     }
 
-    public void setStores(List<StoreDto> stores) {
+    public void setStores(List<StorePreviewDto> stores) {
         this.stores = stores;
     }
 

@@ -9,10 +9,9 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-
 @Entity
-@Table(name = "tags_for_stores")
-public class TagEntity {
+@Table(name="tags_for_products")
+public class TagForProductsEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,10 +23,16 @@ public class TagEntity {
     @Column(name="deleted_at")
     private ZonedDateTime deletedAt;
 
-    public TagEntity(String name ){
+
+    public TagForProductsEntity(String name){
         this.name = name;
     }
-    public TagEntity() {
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -38,12 +43,12 @@ public class TagEntity {
         this.name = name;
     }
 
-    public Long getId() {
-        return id;
+    public ZonedDateTime getDeletedAt() {
+        return deletedAt;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setDeletedAt(ZonedDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
 
