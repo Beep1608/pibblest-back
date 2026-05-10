@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.stores.internal.web.requests.getAllStores;
+package com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores;
 
 import java.util.List;
 

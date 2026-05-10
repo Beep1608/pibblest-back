@@ -10,10 +10,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nss.pibblest.modules.stores.internal.core.StoreProductService;
 import com.nss.pibblest.modules.stores.internal.core.StoreService;
-import com.nss.pibblest.modules.stores.internal.web.requests.createStore.CreateStoreRequest;
-import com.nss.pibblest.modules.stores.internal.web.requests.createStore.CreateStoreResponse;
-import com.nss.pibblest.modules.stores.internal.web.requests.getAllStores.GetAllStoresResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
 
@@ -24,9 +27,11 @@ import jakarta.validation.Valid;
 public class StoreController {
     
     private final StoreService storeService;
+    private final StoreProductService storeProductService;
 
-    public StoreController(StoreService storeService){
+    public StoreController(StoreService storeService, StoreProductService storeProductService){
         this.storeService = storeService;
+        this.storeProductService = storeProductService;
     }
 
     @GetMapping("/all")
@@ -43,6 +48,13 @@ public class StoreController {
     public ResponseEntity<UpdateStoreResponse> updateStore (@PathVariable("id") Long id, @Valid @RequestBody UpdateStoreRequest request){
         return storeService.updateStore(id,request);
     }
+
+    @PostMapping("/assign")
+    public ResponseEntity<AsignStoreProductToStoreResponse> assignProduct (@Valid @RequestBody AsignStoreProductToStoreRequest request){
+
+        return this.storeProductService.assignProductToStore(request);
+    }
     
 
 }
+ 

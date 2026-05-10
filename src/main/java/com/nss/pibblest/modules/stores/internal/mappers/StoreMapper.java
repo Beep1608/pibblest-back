@@ -7,8 +7,9 @@ import org.mapstruct.MappingTarget;
 import org.mapstruct.NullValuePropertyMappingStrategy;
 
 import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
-import com.nss.pibblest.modules.stores.internal.web.requests.createStore.CreateStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
 
 @Mapper(componentModel="spring")
@@ -27,4 +28,5 @@ public interface  StoreMapper {
 
     @Mapping(target="createdAt", source="createdAt", dateFormat="dd/MM/yyyy")
     StoreDto toDto(StoreEntity entity);
+
 }

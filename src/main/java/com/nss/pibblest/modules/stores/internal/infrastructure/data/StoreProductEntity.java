@@ -13,6 +13,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
@@ -23,19 +24,26 @@ public class StoreProductEntity {
     private StoreProductId id = new StoreProductId();
 
 
-    @ManyToMany(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
     @MapsId("store_id")
     @JoinColumn(name="store_id")
     private StoreEntity store;
 
 
-    @ManyToMany(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
     @MapsId("product_id")
     @JoinColumn(name="product_id")
     private ProductEntity product;
 
-    @Column(name="quantity")
-    private Long quantity;
+    @Column(name="desiredquantity")
+    private Long desiredquantity;
+
+
+
+    @Column(name="currentquantity")
+    private Long currentquantity;
+
+
 
     @Column(name="is_active")
     private boolean isActive;
@@ -94,14 +102,6 @@ public class StoreProductEntity {
         this.product = product;
     }
 
-    public Long getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Long quantity) {
-        this.quantity = quantity;
-    }
-
     public boolean isIsActive() {
         return isActive;
     }
@@ -125,5 +125,25 @@ public class StoreProductEntity {
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+       public Long getDesiredquantity() {
+        return desiredquantity;
+    }
+
+
+    public void setDesiredquantity(Long desiredquantity) {
+        this.desiredquantity = desiredquantity;
+    }
+
+    
+    public Long getCurrentquantity() {
+        return currentquantity;
+    }
+
+
+    public void setCurrentquantity(Long currentquantity) {
+        this.currentquantity = currentquantity;
+    }
+
 
 }

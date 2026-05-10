@@ -42,9 +42,9 @@ public class ProductEntity {
     @Column(name="brand", nullable=true, columnDefinition="TEXT")
     private String brand; 
 
-    @ManyToOne(fetch=FetchType.LAZY)
-    @JoinColumn(name="tag_id")
-    private TagEntity tagId;
+   // @ManyToOne(fetch=FetchType.LAZY)
+   // @JoinColumn(name="tag_id")
+   // private TagEntity tagId;
 
 
     @Column(name="base_price", nullable=false, precision=12, scale=2)
@@ -113,13 +113,13 @@ public class ProductEntity {
         this.brand = brand;
     }
 
-    public TagEntity getTagId() {
-        return tagId;
-    }
-
-    public void setTagId(TagEntity tagId) {
-        this.tagId = tagId;
-    }
+    //public TagEntity getTagId() {
+    //    return tagId;
+    //}
+//
+    //public void setTagId(TagEntity tagId) {
+    //    this.tagId = tagId;
+    //}
 
     public BigDecimal getBasePrice() {
         return basePrice;

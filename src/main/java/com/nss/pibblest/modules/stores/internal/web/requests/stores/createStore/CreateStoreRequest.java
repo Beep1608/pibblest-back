@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.stores.internal.web.requests.createStore;
+package com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore;
 
 public class CreateStoreRequest {
     private String name;
