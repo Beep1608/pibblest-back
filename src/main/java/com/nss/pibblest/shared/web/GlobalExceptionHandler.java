@@ -14,6 +14,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
+
 import io.jsonwebtoken.ExpiredJwtException;
 
 @RestControllerAdvice
@@ -84,6 +86,37 @@ public class GlobalExceptionHandler {
         response.put("error", error);
 
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException ex){
+        String errorTile = messageSource.getMessage("error.illegal.state", null, LocaleContextHolder.getLocale());
+
+       String errorMessage = ex.getMessage();
+
+
+       Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.UNPROCESSABLE_CONTENT.value());
+        response.put("error", errorTile);
+        response.put("message", errorMessage);
+
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+    }
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEntityNotFoundException(EntityNotFoundException ex){
+        String errorTile = messageSource.getMessage("error.entity.not.found", null, LocaleContextHolder.getLocale());
+
+       String errorMessage = ex.getMessage();
+
+
+       Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.NOT_FOUND.value());
+        response.put("error", errorTile);
+        response.put("message", errorMessage);
+
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
 }

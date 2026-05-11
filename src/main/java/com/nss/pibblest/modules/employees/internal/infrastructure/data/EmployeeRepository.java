@@ -10,5 +10,6 @@ import org.springframework.stereotype.Repository;
 public interface EmployeeRepository extends JpaRepository<EmployeeEntity, UUID> {
 
     Optional<EmployeeEntity> findByUsername(String username);
+    boolean existsByUsername(String username);
     
 }

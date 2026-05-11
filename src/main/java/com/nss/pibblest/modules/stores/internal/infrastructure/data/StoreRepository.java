@@ -1,6 +1,7 @@
 package com.nss.pibblest.modules.stores.internal.infrastructure.data;
 
-import java.util.List;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -25,8 +26,10 @@ public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
         s.name,
         s.address,
         s.status,
-        COALESCE(SUM(sp.desiredquantity), 0L),
-        COALESCE(SUM(sp.currentquantity), 0L),
+        COALESCE(SUM(sp.desiredQuantity), 0L),
+        COALESCE(SUM(sp.currentQuantity), 0L),
+        (SELECT COUNT(sa) FROM SaleEntity sa WHERE sa.store.id = s.id AND sa.createdAt >= :startOfDay),
+        (SELECT SUM(sa.totalAmount) FROM SaleEntity sa WHERE sa.store.id = s.id),
         s.createdAt
      )        
     FROM StoreEntity s 
@@ -35,6 +38,6 @@ public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
     GROUP BY s.id, s.name, s.address, s.status
 
     """)
-    Page<StorePreviewDto> findStorePreviewInfo(Pageable pageable);
+    Page<StorePreviewDto> findStorePreviewInfo(Pageable pageable, @Param("startOfDay") ZonedDateTime startOfDay);
 
 }

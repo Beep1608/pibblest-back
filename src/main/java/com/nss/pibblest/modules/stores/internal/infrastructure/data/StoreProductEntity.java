@@ -12,7 +12,6 @@ import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
@@ -35,13 +34,13 @@ public class StoreProductEntity {
     @JoinColumn(name="product_id")
     private ProductEntity product;
 
-    @Column(name="desiredquantity")
-    private Long desiredquantity;
+    @Column(name="desired_quantity")
+    private Long desiredQuantity;
 
 
 
-    @Column(name="currentquantity")
-    private Long currentquantity;
+    @Column(name="current_quantity")
+    private Long currentQuantity;
 
 
 
@@ -126,24 +125,23 @@ public class StoreProductEntity {
         this.updatedAt = updatedAt;
     }
 
-       public Long getDesiredquantity() {
-        return desiredquantity;
+    public Long getDesiredQuantity() {
+        return desiredQuantity;
+    }
+
+    public void setDesiredQuantity(Long desiredQuantity) {
+        this.desiredQuantity = desiredQuantity;
+    }
+
+    public Long getCurrentQuantity() {
+        return currentQuantity;
+    }
+
+    public void setCurrentQuantity(Long currentQuantity) {
+        this.currentQuantity = currentQuantity;
     }
 
 
-    public void setDesiredquantity(Long desiredquantity) {
-        this.desiredquantity = desiredquantity;
-    }
-
-    
-    public Long getCurrentquantity() {
-        return currentquantity;
-    }
-
-
-    public void setCurrentquantity(Long currentquantity) {
-        this.currentquantity = currentquantity;
-    }
 
 
 }

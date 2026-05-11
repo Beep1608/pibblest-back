@@ -1,5 +1,8 @@
 package com.nss.pibblest.modules.stores.internal.core;
 
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
 import org.springframework.context.MessageSource;
@@ -11,7 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
 import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
 import com.nss.pibblest.modules.stores.internal.core.exceptions.StoreNotFound;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
@@ -38,7 +40,8 @@ public class StoreService {
 
     public ResponseEntity<GetAllStoresResponse> getAllStores(Pageable pageable) {
 
-        Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfo(pageable);
+        ZonedDateTime startOfToday = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfo(pageable, startOfToday);
 
         
         GetAllStoresResponse response = new GetAllStoresResponse(storesPage);

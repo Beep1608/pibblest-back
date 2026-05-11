@@ -76,6 +76,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 }
             }
+            System.out.println("No fue validado");
             
         } catch (Exception e) {
             System.err.println("Error procesando JWT: " + e.getMessage());

@@ -15,6 +15,8 @@ import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asign
 import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreResponse;
 import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class StoreProductService {
 
@@ -30,6 +32,7 @@ public class StoreProductService {
         this.productRespository = productRespository;
     }
 
+    @Transactional
     public ResponseEntity<AsignStoreProductToStoreResponse> assignProductToStore(AsignStoreProductToStoreRequest request){
 
         ProductEntity productEntity = productRespository.findById(request.getProductId())
@@ -56,11 +59,12 @@ public class StoreProductService {
 
             newStoreProductEntity.setProduct(productEntity);
             newStoreProductEntity.setStore(storeEntity);
-            newStoreProductEntity.setDesiredquantity(request.getQuantity());
+            newStoreProductEntity.setDesiredQuantity(request.getQuantity());
             return newStoreProductEntity;
         });
 
-        storeProductEntity.setCurrentquantity(request.getQuantity());
+        storeProductEntity.setDesiredQuantity(request.getQuantity());
+        storeProductEntity.setCurrentQuantity(request.getQuantity());
         storeProductEntity.setIsActive(true);
 
         storeProductRepository.save(storeProductEntity);

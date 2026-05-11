@@ -71,7 +71,7 @@ public class TagService {
 
         
         StoreEntity storeEntity = storeRepository.findById(request.getStoreId()).orElseThrow(() -> new StoreNotFound(
-            messageSource.getMessage("error.store.not.found", new Object[]{ request.getStoreId()}, LocaleContextHolder.getLocale())
+            messageSource.getMessage("store.not.found", new Object[]{ request.getStoreId()}, LocaleContextHolder.getLocale())
         ));
 
        List<StoreTagEntity> newAssignments = request.getTagsId().stream().map(tagId -> {

@@ -9,5 +9,6 @@ import org.springframework.stereotype.Repository;
 public interface  StoreProductRepository extends  JpaRepository<StoreProductEntity, StoreProductId>{
 
     List<StoreProductEntity> findByStoreIdAndIsActiveTrue(Long storeId);
+    List<StoreProductEntity> findByStoreIdAndProductIdIn(Long storeId, List<Long> productIds);
     
 }
