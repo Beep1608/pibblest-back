@@ -22,6 +22,8 @@ import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
 import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
 
+import jakarta.transaction.Transactional;
+
 @Service
 public class EmployeeStoreService {
 
@@ -36,10 +38,11 @@ public class EmployeeStoreService {
             MessageSource messageSource) {
         this.employeeStoreRepository = employeeStoreRepository;
         this.storeRepository = storeRepository;
-        this.employeeRepository =employeeRepository;
+        this.employeeRepository = employeeRepository;
         this.messageSource = messageSource;
     }
 
+    @Transactional
     public ResponseEntity<AssignEmployeeToStoreResponse> assignEmployeeToStore(
             AssignEmployeeToStoreRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
@@ -52,39 +55,49 @@ public class EmployeeStoreService {
             throw new IllegalStateException(messageSource.getMessage("store.inactive", null, locale));
         }
 
-        Set<UUID> requestEmployeeIds  = request.getEmployees()
-            .stream()
-            .map(AssignEmployeeToStoreRequest.EmployeeItemRequest::getEmployeeId)
-            .collect(Collectors.toSet());
+        Set<UUID> requestEmployeeIds = request.getEmployees()
+                .stream()
+                .collect(Collectors.toSet());
+
         List<EmployeeEntity> employees = employeeRepository.findAllById(requestEmployeeIds);
 
-        if(employees .size() != requestEmployeeIds.size()){
+        if (employees.size() != requestEmployeeIds.size()) {
             Set<UUID> foundIds = employees.stream()
-            .map(EmployeeEntity::getId)
-            .collect(Collectors.toSet());
+                    .map(EmployeeEntity::getId)
+                    .collect(Collectors.toSet());
 
             requestEmployeeIds.stream()
-            .filter(id -> !foundIds.contains(id))
-            .findFirst()
-            .ifPresent(missingId -> {
-                throw new EntityNotFoundException(
-                    messageSource
-                    .getMessage("employee.not.found", new Object[]{missingId}, locale)
-                );
-            });
+                    .filter(id -> !foundIds.contains(id))
+                    .findFirst()
+                    .ifPresent(missingId -> {
+                        throw new EntityNotFoundException(
+                                messageSource
+                                        .getMessage("employee.not.found", new Object[] { missingId }, locale));
+                    });
         }
 
         List<EmployeeStoreEntity> newAssigments = employees.stream()
-        .map(employee -> new EmployeeStoreEntity(storeEntity, employee, true))
-        .toList();
+                .map(employee -> new EmployeeStoreEntity(storeEntity, employee, true))
+                .toList();
 
+        List<EmployeeStoreEntity> alreadyRegistered = employeeStoreRepository
+                .findByEmployee_IdIn(employees.stream().map(e -> e.getId()).toList());
+
+        if (!alreadyRegistered.isEmpty()) {
+
+            String assignedUsernames = alreadyRegistered.stream()
+                    .map(m -> m.getEmployee().getUsername())
+                    .collect(Collectors.joining(", "));
+
+            throw new IllegalStateException(
+                    messageSource.getMessage("employees.already.assigned", new Object[] { assignedUsernames }, locale));
+        }
+        System.out.println("No se encontró alguno");
         employeeStoreRepository.saveAll(newAssigments);
 
         AssignEmployeeToStoreResponse response = new AssignEmployeeToStoreResponse(
-            messageSource.getMessage("employees.assigment.done", null,locale)
-        );
+                messageSource.getMessage("employees.assigment.done", null, locale));
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
 
     }
 

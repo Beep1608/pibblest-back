@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
 public class AssignEmployeeToStoreRequest {
 
     private Long storeId;
-    private List<EmployeeItemRequest> employees;
+    private List<UUID> employees;
 
     public Long getStoreId() {
         return storeId;
@@ -18,11 +18,11 @@ public class AssignEmployeeToStoreRequest {
         this.storeId = storeId;
     }
 
-    public List<EmployeeItemRequest> getEmployees() {
+    public List<UUID> getEmployees() {
         return employees;
     }
 
-    public void setEmployees(List<EmployeeItemRequest> employees) {
+    public void setEmployees(List<UUID> employees) {
         this.employees = employees;
     }
 

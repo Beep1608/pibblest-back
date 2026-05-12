@@ -5,7 +5,7 @@ import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class StorePreviewDto {
 
@@ -13,30 +13,33 @@ public class StorePreviewDto {
     private String name;
     private String address;
     private String status;
-    private Long totalProduct;
+    private Long totalProducts;
     private Long currentQuantityOfProducts;
     private Long salesOfToday;
     private BigDecimal totalSalesRevenue;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
+    private String operatinTime;
+    
+    @JsonIgnore
     private ZonedDateTime createdAt;
-
     private Double growthFromStart;
-    // int employees, // de la tabla stores_employees
+    private Long employees; 
 
     public StorePreviewDto(Long id, String name, String address, String status,
-            Long totalProduct, Long currentQuantityOfProducts,
+            Long totalProducts, Long currentQuantityOfProducts,
             Long salesOfToday, BigDecimal totalSalesRevenue,
+            Long employees,
             ZonedDateTime createdAt) {
         this.id = id;
         this.name = name;
         this.address = address;
         this.status = status;
-        this.totalProduct = totalProduct != null ? totalProduct : 0L;
+        this.totalProducts = totalProducts != null ? totalProducts : 0L;
         this.currentQuantityOfProducts = currentQuantityOfProducts != null ? currentQuantityOfProducts : 0L;
         this.salesOfToday = salesOfToday != null ? salesOfToday : 0L;
         this.totalSalesRevenue = totalSalesRevenue != null ? totalSalesRevenue : BigDecimal.ZERO;
+        this.employees = employees;
         this.createdAt = createdAt;
-        this.growthFromStart = calculateDailyGrowth();
+        this.growthFromStart = calculateDailyGrowth(createdAt);
     }
 
     public StorePreviewDto() {
@@ -74,12 +77,12 @@ public class StorePreviewDto {
         this.status = status;
     }
 
-    public Long getTotalProduct() {
-        return totalProduct;
+    public Long getTotalProducts() {
+        return totalProducts;
     }
 
-    public void setTotalProduct(Long totalProduct) {
-        this.totalProduct = totalProduct;
+    public void setTotalProducts(Long totalProducts) {
+        this.totalProducts = totalProducts;
     }
 
     public Long getCurrentQuantityOfProducts() {
@@ -90,30 +93,20 @@ public class StorePreviewDto {
         this.currentQuantityOfProducts = currentQuantityOfProducts;
     }
 
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    private Double calculateDailyGrowth() {
+    private Double calculateDailyGrowth(ZonedDateTime createdAt) {
         if (createdAt == null || totalSalesRevenue.compareTo(BigDecimal.ZERO) == 0) {
             return 0.0;
         }
 
-        // 1. Calculamos los días de vida de la tienda
         long daysAlive = Duration.between(createdAt, ZonedDateTime.now()).toDays();
 
-        // 2. Evitamos división por cero (si se creó hoy, contamos como 1 día)
         if (daysAlive <= 0)
             daysAlive = 1;
 
-        // 3. Dividimos Total / Días (con 2 decimales)
         return totalSalesRevenue.divide(BigDecimal.valueOf(daysAlive), 2, RoundingMode.HALF_UP).doubleValue();
     }
 
+   
     public Long getSalesOfToday() {
         return salesOfToday;
     }
@@ -136,6 +129,26 @@ public class StorePreviewDto {
 
     public void setTotalSalesRevenue(BigDecimal totalSalesRevenue) {
         this.totalSalesRevenue = totalSalesRevenue;
+    }
+
+    public Long getEmployees() {
+        return employees;
+    }
+
+    public void setEmployees(Long employees) {
+        this.employees = employees;
+    }
+
+    public String getOperatinTime() {
+        return operatinTime;
+    }
+
+    public void setOperatinTime(String operatinTime) {
+        this.operatinTime = operatinTime;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
     }
 
 }

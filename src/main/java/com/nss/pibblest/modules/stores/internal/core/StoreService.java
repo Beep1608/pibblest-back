@@ -1,6 +1,7 @@
 package com.nss.pibblest.modules.stores.internal.core;
 
-import java.time.OffsetDateTime;
+import java.time.Duration;
+import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Locale;
@@ -42,8 +43,12 @@ public class StoreService {
 
         ZonedDateTime startOfToday = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
         Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfo(pageable, startOfToday);
+        Locale locale = LocaleContextHolder.getLocale();
 
-        
+        storesPage.forEach(dto -> {
+            String localizedTime = getLocalizedOperatingTime(dto.getCreatedAt(), locale);
+            dto.setOperatinTime(localizedTime);
+        });
         GetAllStoresResponse response = new GetAllStoresResponse(storesPage);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -80,5 +85,44 @@ public class StoreService {
         UpdateStoreResponse response = new UpdateStoreResponse(successMessage);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    private String getLocalizedOperatingTime(ZonedDateTime createdAt, Locale locale) {
+        if (createdAt == null) {
+            return messageSource.getMessage("time.unknown", null, locale);
+        }
+
+        ZonedDateTime now = ZonedDateTime.now();
+        Period period = Period.between(createdAt.toLocalDate(), now.toLocalDate());
+
+        int years = period.getYears();
+        int months = period.getMonths();
+        int days = period.getDays();
+
+        // Evaluamos Años
+        if (years > 0) {
+            String key = years == 1 ? "time.years.one" : "time.years.many";
+            return messageSource.getMessage(key, new Object[] { years }, locale);
+        }
+        // Evaluamos Meses
+        if (months > 0) {
+            String key = months == 1 ? "time.months.one" : "time.months.many";
+            return messageSource.getMessage(key, new Object[] { months }, locale);
+        }
+        // Evaluamos Días
+        if (days > 0) {
+            String key = days == 1 ? "time.days.one" : "time.days.many";
+            return messageSource.getMessage(key, new Object[] { days }, locale);
+        }
+
+        // Evaluamos Horas si se creó hoy
+        long hours = Duration.between(createdAt, now).toHours();
+        if (hours > 0) {
+            String key = hours == 1 ? "time.hours.one" : "time.hours.many";
+            return messageSource.getMessage(key, new Object[] { hours }, locale);
+        }
+
+        // Menos de una hora
+        return messageSource.getMessage("time.less.than.hour", null, locale);
     }
 }

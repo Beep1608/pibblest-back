@@ -30,6 +30,7 @@ public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
         COALESCE(SUM(sp.currentQuantity), 0L),
         (SELECT COUNT(sa) FROM SaleEntity sa WHERE sa.store.id = s.id AND sa.createdAt >= :startOfDay),
         (SELECT SUM(sa.totalAmount) FROM SaleEntity sa WHERE sa.store.id = s.id),
+        (SELECT COUNT(es) FROM EmployeeStoreEntity es WHERE es.store.id = s.id AND es.isActive = true),
         s.createdAt
      )        
     FROM StoreEntity s 

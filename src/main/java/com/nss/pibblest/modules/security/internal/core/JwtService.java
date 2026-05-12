@@ -26,7 +26,6 @@ public class JwtService {
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
 
-    private static final long EXPIRATION_TIME_IN_MS = 5 * 60 * 1000;
     public String generateToken(UUID employeeId, String username, String schema_name){
 
         Map<String, Object> extraClaims = new HashMap<>();

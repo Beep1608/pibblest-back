@@ -39,7 +39,7 @@ public class EmployeeController {
 
     @PostMapping("/assign")
         public ResponseEntity<AssignEmployeeToStoreResponse> assignEmployeeToStore(
-            AssignEmployeeToStoreRequest request) {
+           @Valid @RequestBody AssignEmployeeToStoreRequest request) {
             return this.employeeStoreService.assignEmployeeToStore(request);
     }
 }
