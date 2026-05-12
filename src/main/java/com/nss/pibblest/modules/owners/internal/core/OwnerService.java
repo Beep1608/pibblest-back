@@ -88,7 +88,7 @@ public class OwnerService {
                 ownerCreated.getEmail(),
                 ownerCreated.getSchemaName()));
 
-        String token = jwtService.generateToken(ownerCreated.getId(), ownerCreated.getName(), ownerCreated.getSchemaName());
+        String token = jwtService.generateToken(ownerCreated.getId(), ownerCreated.getName(), ownerCreated.getSchemaName(),true);
         String message = messageSource.getMessage("response.created.owner", null,LocaleContextHolder.getLocale());
         CreateOwnerResponse responseBody = new CreateOwnerResponse(message,token);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);

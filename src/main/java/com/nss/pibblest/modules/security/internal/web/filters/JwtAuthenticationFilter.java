@@ -54,6 +54,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             userEmail = jwtService.extractUsername(jwt);
             String owner = jwtService.extractOwner(jwt);
             boolean isValid = jwtService.isTokenValid(jwt, userEmail);
+            String tokenId = jwtService.extractTokenId(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
                 boolean isTokenActive = sessionTrackerService.isSessionValid(userEmail, jwtService.extractTokenId(jwt));
@@ -65,7 +66,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         TenantContext.setCurrentTenant(owner);
                     }
 
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userEmail, 
+                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(tokenId, 
                         null,
                         Collections.singletonList(new SimpleGrantedAuthority("miau"))
                     );

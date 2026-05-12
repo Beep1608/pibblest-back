@@ -26,7 +26,7 @@ public class JwtService {
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
 
-    public String generateToken(UUID employeeId, String username, String schema_name){
+    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner){
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("employeeId", employeeId);
@@ -35,6 +35,7 @@ public class JwtService {
         if(schema_name != null && !schema_name.isBlank()){
             extraClaims.put("owner", schema_name);
         }
+        extraClaims.put("isOwner", isOwner);
 
         String tokenId = UUID.randomUUID().toString();
 
@@ -59,6 +60,13 @@ public class JwtService {
 
     public String extractOwner(String token){
         return extractAllClaims(token).get("owner", String.class);
+    }
+
+    public boolean extractIsOwner(String token){
+        return extractAllClaims(token).get("isOwner", boolean.class);
+    }
+    public String extractUserId(String token){
+        return extractAllClaims(token).get("employeeId", String.class);
     }
 
     public boolean isTokenValid(String token, String username){
