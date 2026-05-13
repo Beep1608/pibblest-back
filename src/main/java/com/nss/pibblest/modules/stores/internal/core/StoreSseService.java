@@ -16,27 +16,28 @@ public class StoreSseService {
 
     private final Map<String, List<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
 
-    public SseEmitter suscribe(String username) {
+    public SseEmitter suscribe(String userId) {
         SseEmitter emitter = new SseEmitter(1800000L);
 
-        userEmitters.computeIfAbsent(username, k -> new CopyOnWriteArrayList<>()).add(emitter);
+        System.out.println("Id del token: "+ userId);
+        userEmitters.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 
-        emitter.onCompletion(() -> removeEmitter(username, emitter));
-        emitter.onTimeout(() -> removeEmitter(username, emitter));
-        emitter.onError(e -> removeEmitter(username, emitter));
+        emitter.onCompletion(() -> removeEmitter(userId, emitter));
+        emitter.onTimeout(() -> removeEmitter(userId, emitter));
+        emitter.onError(e -> removeEmitter(userId, emitter));
 
         try{
             emitter.send(SseEmitter.event().name("INIT").data("SSE Conectado"));
 
         }catch(IOException e){
-            removeEmitter(username, emitter);
+            removeEmitter(userId, emitter);
         }
 
         return emitter;
     }
 
-    public void broadcastStoreUpdate(String token, StorePreviewDto updateStore) {
-        List<SseEmitter> emitters = userEmitters.get(token);
+    public void broadcastStoreUpdate(String userId, StorePreviewDto updateStore) {
+        List<SseEmitter> emitters = userEmitters.get(userId);
 
         if (emitters != null) {
             for (SseEmitter emitter : emitters) {
@@ -46,7 +47,7 @@ public class StoreSseService {
                             .data(updateStore));
                 } catch (IOException e) {
                     emitter.complete();
-                    removeEmitter(token, emitter);
+                    removeEmitter(userId, emitter);
                 }
             }
         }

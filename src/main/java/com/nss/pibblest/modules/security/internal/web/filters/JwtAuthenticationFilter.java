@@ -21,6 +21,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 
 @Component
+//TODO: Creo que este filtro se aplicá dos veces
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtService jwtService;
@@ -39,25 +40,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         ) throws ServletException, IOException {
         
         final String authHeader = request.getHeader("Authorization");
-        final String jwt;
+        String jwt = null;
         final String userEmail;
 
-        if(authHeader == null || !authHeader.startsWith("Bearer ")){
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            // Caso A: Petición REST clásica desde Angular
+            jwt = authHeader.substring(7);
+        } else if (request.getRequestURI().contains("/api/stores/stream/storePreview")) {
+            // Caso B: Petición SSE nativa (el token viene en ?token=...)
+            jwt = request.getParameter("token");
+        }
+
+        if (jwt == null || jwt.trim().isEmpty()) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
+        
 
         try {
 
             userEmail = jwtService.extractUsername(jwt);
             String owner = jwtService.extractOwner(jwt);
             boolean isValid = jwtService.isTokenValid(jwt, userEmail);
-            String tokenId = jwtService.extractTokenId(jwt);
+            String userId = jwtService.extractUserId(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-                boolean isTokenActive = sessionTrackerService.isSessionValid(userEmail, jwtService.extractTokenId(jwt));
+                boolean isTokenActive = sessionTrackerService.isSessionValid(userId, jwtService.extractTokenId(jwt));
   
 
                 if(jwtService.isTokenValid(jwt, userEmail) && isTokenActive){
@@ -66,12 +76,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         TenantContext.setCurrentTenant(owner);
                     }
 
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(tokenId, 
+                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userId, 
                         null,
                         Collections.singletonList(new SimpleGrantedAuthority("miau"))
                     );
 
-                     System.out.println("Siii");
+                    System.out.println("Siii");
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 

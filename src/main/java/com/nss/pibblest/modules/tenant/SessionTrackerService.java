@@ -18,8 +18,8 @@ public class SessionTrackerService {
         this.redisTemplate = redisTemplate;
     }
 
-    public void registerNewSession(String username, String tokenId){
-        String redisKey = "active_sessions:"+username;
+    public void registerNewSession(String userId, String tokenId){
+        String redisKey = "active_sessions:"+userId;
 
         redisTemplate.opsForList().rightPush(redisKey, tokenId);
 
@@ -33,8 +33,8 @@ public class SessionTrackerService {
         redisTemplate.expire(redisKey, JWT_EXPIRATION_HOURS, TimeUnit.HOURS);
     }
 
-    public boolean isSessionValid(String username, String tokenId){
-        String redisKey = "active_sessions:"+username;
+    public boolean isSessionValid(String userId, String tokenId){
+        String redisKey = "active_sessions:"+userId;
 
 
         List<String> activeSessions = redisTemplate.opsForList().range(redisKey, 0, -1);
@@ -48,8 +48,8 @@ public class SessionTrackerService {
      * Verifica instantáneamente si el usuario tiene sesiones activas en Redis.
      * Si la llave existe, significa que tiene al menos un token registrado.
      */
-    public boolean isUserOnline(String username) {
-        String redisKey = "active_sessions:" + username;
+    public boolean isUserOnline(String userId) {
+        String redisKey = "active_sessions:" + userId;
         Boolean exists = redisTemplate.hasKey(redisKey);
         return exists != null && exists;
     }

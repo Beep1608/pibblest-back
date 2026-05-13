@@ -75,7 +75,8 @@ public class SecurityService {
         String token = jwtService.generateToken(ownerEntity.getId(), ownerEntity.getName(), ownerEntity.getSchemaName(), true);
 
         String tokenId = jwtService.extractTokenId(token);
-        sessionTrackerService.registerNewSession(ownerEntity.getName(), tokenId);
+        System.out.println("Registrando la sesion : "+ownerEntity.getId().toString());
+        sessionTrackerService.registerNewSession(ownerEntity.getId().toString(), tokenId);
       
         String message = messageSource.getMessage("owner.login.success", new Object[] { ownerEntity.getName() },
                 LocaleContextHolder.getLocale());

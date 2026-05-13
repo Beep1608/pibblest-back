@@ -21,7 +21,7 @@ public class StoreSseController {
 
     @GetMapping(value="/storePreview", produces= MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter stream(){
-        String userName = (String)(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-        return storeSseService.suscribe(userName);
+        String userId = (String)(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        return storeSseService.suscribe(userId);
     }
 }

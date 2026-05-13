@@ -36,8 +36,8 @@ public class StoreNotificationHelper {
         this.messageSource = messageSource;
     }
 
-    public void notifyStoreChange(Long storeId, String token) {
-        if (!sessionTrackerService.isUserOnline(token)) {
+    public void notifyStoreChange(Long storeId, String userId) {
+        if (!sessionTrackerService.isUserOnline(userId)) {
             return;
         }
         ZonedDateTime startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
@@ -52,7 +52,7 @@ public class StoreNotificationHelper {
                             "store-realtime-updates", // Tópico
                             String.valueOf(freshDto.getId()), // Key (ID de la tienda)
                             freshDto);
-                    record.headers().add("token", token.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    record.headers().add("userId", userId.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                     kafkaTemplate.send(record);
                     //storeSseService.broadcastStoreUpdate(token, freshDto);
 

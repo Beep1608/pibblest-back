@@ -20,9 +20,9 @@ public class StoreKafkaConsumer {
         topics="store-realtime-updates",
         groupId="sse-node-#{T(java.util.UUID).randomUUID().toString()}"
     )
-    public void consumeStoreUpdate(@Payload StorePreviewDto updateStore, @Header("token") String token){
-        if(token != null){
-            storeSseService.broadcastStoreUpdate(token, updateStore);
+    public void consumeStoreUpdate(@Payload StorePreviewDto updateStore, @Header("userId") String userId){
+        if(userId != null){
+            storeSseService.broadcastStoreUpdate(userId, updateStore);
         }else{
             System.out.println("Vacioooo");
         }

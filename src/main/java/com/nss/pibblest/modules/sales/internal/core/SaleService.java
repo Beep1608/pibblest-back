@@ -113,7 +113,7 @@ public class SaleService {
 
         SaleEntity savedSale = saleRepository.save(sale);
 
-        System.out.println("El principal: "+ (String) (SecurityContextHolder.getContext().getAuthentication().getPrincipal()));
+        //TODO: Cuando se notifica de un estadi INIT -> STORE_UPDATE arroja un access denied pero sigue streameando
         storeNotificationHelper.notifyStoreChange(store.getId(),
                 (String) (SecurityContextHolder.getContext().getAuthentication().getPrincipal()));
 
