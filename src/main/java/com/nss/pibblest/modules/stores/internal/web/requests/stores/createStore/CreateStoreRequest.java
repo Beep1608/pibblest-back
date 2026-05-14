@@ -1,15 +1,17 @@
 package com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore;
 
+import com.nss.pibblest.shared.enums.StoreStatus;
+
 public class CreateStoreRequest {
     private String name;
     private String address;
-    private String status = "active";
+    private StoreStatus status = StoreStatus.ACTIVE;
 
-    public String getStatus() {
+    public StoreStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(StoreStatus status) {
         this.status = status;
     }
 
