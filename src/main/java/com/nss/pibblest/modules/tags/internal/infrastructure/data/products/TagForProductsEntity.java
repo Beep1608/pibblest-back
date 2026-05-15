@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.tags.internal.infrastructure.data;
+package com.nss.pibblest.modules.tags.internal.infrastructure.data.products;
 
 import java.time.ZonedDateTime;
 
