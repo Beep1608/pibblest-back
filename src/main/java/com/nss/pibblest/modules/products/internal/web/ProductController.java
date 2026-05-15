@@ -1,6 +1,9 @@
 package com.nss.pibblest.modules.products.internal.web;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -9,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nss.pibblest.modules.products.internal.core.ProductService;
 import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductRequest;
 import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductResponse;
+import com.nss.pibblest.modules.products.internal.web.requests.getProductsFromStore.GetProductsFromStoreResponse;
 
 import jakarta.validation.Valid;
 
@@ -25,5 +29,10 @@ public class ProductController {
     @PostMapping
     public ResponseEntity<CreateProductResponse> createProduct( @Valid @RequestBody CreateProductRequest request){
         return this.productService.createProduct(request);
+    }
+
+    @GetMapping("/{storeId}")
+    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStore (@PathVariable("storeId")  Long storeId, Pageable pageable){
+        return productService.getProductsFromStore(storeId, pageable);
     }
 }
