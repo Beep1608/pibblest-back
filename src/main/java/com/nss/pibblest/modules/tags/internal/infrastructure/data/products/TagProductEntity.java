@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
 
@@ -17,12 +18,12 @@ public class TagProductEntity {
     @EmbeddedId
     private TagProductEmbedded id =new TagProductEmbedded();
 
-    @ManyToMany(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
     @MapsId("productId")
     @JoinColumn(name="product_id")
     private ProductEntity productEntity;
 
-    @ManyToMany(fetch=FetchType.LAZY)
+    @ManyToOne(fetch=FetchType.LAZY)
     @MapsId("tagId")
     @JoinColumn(name="tag_id")
     private TagForProductsEntity tagForProductsEntity;

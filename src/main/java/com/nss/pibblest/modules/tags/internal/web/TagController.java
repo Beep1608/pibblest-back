@@ -14,8 +14,11 @@ import com.nss.pibblest.modules.tags.internal.web.requests.assignTag.AssignTagRe
 import com.nss.pibblest.modules.tags.internal.web.requests.createGroup.CreateTagRequest;
 import com.nss.pibblest.modules.tags.internal.web.requests.createGroup.CreateTagResponse;
 import com.nss.pibblest.modules.tags.internal.web.requests.getAllTags.GetAllTagsResponse;
-import com.nss.pibblest.modules.tags.internal.web.requests.products.AssignTagToProductRequest;
-import com.nss.pibblest.modules.tags.internal.web.requests.products.AssignTagToProductResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToProduct.AssignTagToProductRequest;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToProduct.AssignTagToProductResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.createTagForProduct.CreateTagForProductRequest;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.createTagForProduct.CreateTagForProductResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.getAllTagsForProducts.GetAllTagsForProductsResponse;
 
 import jakarta.validation.Valid;
 
@@ -53,5 +56,15 @@ public class TagController {
             @Valid @RequestBody AssignTagToProductRequest request) {
         return tagService.assignTagToProduct(request);
     }
+
+    @PostMapping("/create-to-products")
+    public ResponseEntity<CreateTagForProductResponse> createTagToProduct(@Valid @RequestBody CreateTagForProductRequest request){
+        return tagService.createTagToProduct(request);
+    }
+
+    @GetMapping("/get-all-products")
+    public ResponseEntity<GetAllTagsForProductsResponse> getAllTagsForProducts(String keyword, Pageable pageable){
+        return  tagService.getAllTagsForProducts(keyword, pageable);
+    } 
 
 }

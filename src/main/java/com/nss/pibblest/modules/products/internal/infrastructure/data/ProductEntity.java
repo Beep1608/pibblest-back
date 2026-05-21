@@ -2,20 +2,21 @@ package com.nss.pibblest.modules.products.internal.infrastructure.data;
 
 import java.math.BigDecimal;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import com.nss.pibblest.modules.tags.internal.infrastructure.data.TagEntity;
+import com.nss.pibblest.modules.tags.internal.infrastructure.data.products.TagProductEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -64,6 +65,10 @@ public class ProductEntity {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
+
+    @OneToMany(mappedBy="productEntity")
+    @BatchSize(size=20)
+    private List<TagProductEntity> productTags = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -159,6 +164,10 @@ public class ProductEntity {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public List<TagProductEntity> getProductTags() {
+        return productTags;
     }
 
 

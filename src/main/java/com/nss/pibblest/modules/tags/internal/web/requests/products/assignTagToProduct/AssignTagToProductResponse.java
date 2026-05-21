@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.tags.internal.web.requests.products;
+package com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToProduct;
 
 public class AssignTagToProductResponse {
     private String message;

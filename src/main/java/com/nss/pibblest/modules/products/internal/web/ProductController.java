@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nss.pibblest.modules.products.internal.core.ProductService;
@@ -32,7 +33,8 @@ public class ProductController {
     }
 
     @GetMapping("/{storeId}")
-    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStore (@PathVariable("storeId")  Long storeId, Pageable pageable){
-        return productService.getProductsFromStore(storeId, pageable);
+    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStorePreview (@PathVariable("storeId")  Long storeId, 
+    @RequestParam(required=false) String keyword ,Pageable pageable){
+        return productService.getProductsFromStore(storeId, keyword,pageable);
     }
 }

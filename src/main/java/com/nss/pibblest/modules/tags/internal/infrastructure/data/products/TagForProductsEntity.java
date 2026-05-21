@@ -24,6 +24,9 @@ public class TagForProductsEntity {
     private ZonedDateTime deletedAt;
 
 
+    public TagForProductsEntity(){
+        
+    }
     public TagForProductsEntity(String name){
         this.name = name;
     }

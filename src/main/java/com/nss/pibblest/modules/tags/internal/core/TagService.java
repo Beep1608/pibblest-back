@@ -35,8 +35,11 @@ import com.nss.pibblest.modules.tags.internal.web.requests.assignTag.AssignTagRe
 import com.nss.pibblest.modules.tags.internal.web.requests.createGroup.CreateTagRequest;
 import com.nss.pibblest.modules.tags.internal.web.requests.createGroup.CreateTagResponse;
 import com.nss.pibblest.modules.tags.internal.web.requests.getAllTags.GetAllTagsResponse;
-import com.nss.pibblest.modules.tags.internal.web.requests.products.AssignTagToProductRequest;
-import com.nss.pibblest.modules.tags.internal.web.requests.products.AssignTagToProductResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToProduct.AssignTagToProductRequest;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToProduct.AssignTagToProductResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.createTagForProduct.CreateTagForProductRequest;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.createTagForProduct.CreateTagForProductResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.getAllTagsForProducts.GetAllTagsForProductsResponse;
 import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
 
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
@@ -86,7 +89,7 @@ public class TagService {
     @Transactional
     public ResponseEntity<AssignTagResponse> assignTagToStore(@Valid @RequestBody AssignTagRequest request) {
 
-        validateTagsExist(request.getTagsId());
+        validateTagsExistForStore(request.getTagsId());
 
         StoreEntity storeEntity = storeRepository.findById(request.getStoreId()).orElseThrow(() -> new StoreNotFound(
                 messageSource.getMessage("store.not.found", new Object[] { request.getStoreId() },
@@ -116,7 +119,7 @@ public class TagService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
-    private boolean validateTagsExist(Set<Long> requestedTagIds) {
+    private boolean validateTagsExistForStore(Set<Long> requestedTagIds) {
 
         List<TagEntity> existingTags = tagRepository.findAllById(requestedTagIds);
 
@@ -137,29 +140,83 @@ public class TagService {
         return true;
     }
 
-    public ResponseEntity<AssignTagToProductResponse> assignTagToProduct(AssignTagToProductRequest request) {
+    @Transactional
+    public ResponseEntity<CreateTagForProductResponse> createTagToProduct(CreateTagForProductRequest request) {
         Locale locale = LocaleContextHolder.getLocale();
 
-        TagForProductsEntity tagForProductsEntity = tagForProductsRepository.findById(request.getTagId()).orElseThrow(
-                () -> new EntityNotFoundException(messageSource.getMessage(
-                        "tags.for.products.not.found",
-                        new Object[] { request.getTagId() },
-                        locale)));
+        TagForProductsEntity tagForProductsEntity = new TagForProductsEntity(request.getName());
+
+        TagForProductsEntity newTagForProductsEntity = tagForProductsRepository.save(tagForProductsEntity);
+
+        CreateTagForProductResponse response = new CreateTagForProductResponse(
+                messageSource.getMessage("tag.for.products.created",
+                        new Object[] { newTagForProductsEntity.getName() }, locale));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+    }
+
+    @Transactional
+    public ResponseEntity<AssignTagToProductResponse> assignTagToProduct(AssignTagToProductRequest request) {
+        validateTagsExistForProducts(request.getTagsId());
 
         ProductEntity productEntity = productRespository.findById(request.getProductId()).orElseThrow(
                 () -> new EntityNotFoundException(messageSource.getMessage(
                         "products.not.found",
                         new Object[] { request.getProductId() },
-                        locale)));
+                        LocaleContextHolder.getLocale())));
 
-        TagProductEntity tagProductEntity = new TagProductEntity(productEntity, tagForProductsEntity);
+        List<TagProductEntity> newAssigments = request.getTagsId().stream().map(tagId -> {
+            TagForProductsEntity tagProxy = tagForProductsRepository.getReferenceById(tagId);
 
-        TagProductEntity newTagProductEntity = tagProductRepository.save(tagProductEntity);
+            return new TagProductEntity(productEntity, tagProxy);
+        })
+                .collect(Collectors.toList());
 
-        AssignTagToProductResponse response = new AssignTagToProductResponse("Se registró la asociación");
+        tagProductRepository.saveAll(newAssigments);
+
+        AssignTagToProductResponse response = new AssignTagToProductResponse(
+                messageSource.getMessage("tag.for.products.assigned", null, LocaleContextHolder.getLocale()));
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
 
+    }
+
+    private boolean validateTagsExistForProducts(Set<Long> requestedTagIds) {
+        List<TagForProductsEntity> existingTags = tagForProductsRepository.findAllById(requestedTagIds);
+
+        if (existingTags.size() != requestedTagIds.size()) {
+            Set<Long> foundIds = existingTags.stream()
+                    .map(TagForProductsEntity::getId)
+                    .collect(Collectors.toSet());
+
+            Set<Long> missingIds = new HashSet<>(requestedTagIds);
+            missingIds.removeAll(foundIds);
+
+            String errorMessage = messageSource.getMessage("error.tags.not.found",
+                    new Object[] { missingIds.toString() }, LocaleContextHolder.getLocale());
+
+            throw new TagsNotFound(errorMessage);
+        }
+        return true;
+    }
+
+    public ResponseEntity<GetAllTagsForProductsResponse> getAllTagsForProducts(
+            String keyword, Pageable pageable) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            Page<TagForProductsEntity> tagForProductsPage = tagForProductsRepository.findAll(pageable);
+
+            Page<TagDto> dtoPage = tagForProductsPage.map(tagMapper::fromTagForProductToDto);
+            GetAllTagsForProductsResponse response = new GetAllTagsForProductsResponse(dtoPage);
+            return ResponseEntity.status(HttpStatus.OK).body(response);
+        }
+
+        Page<TagForProductsEntity> tagForProductsPage = tagForProductsRepository.findByNameContainingIgnoreCase(keyword,
+                pageable);
+
+        Page<TagDto> dtoPage = tagForProductsPage.map(tagMapper::fromTagForProductToDto);
+        GetAllTagsForProductsResponse response = new GetAllTagsForProductsResponse(dtoPage);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
 }
