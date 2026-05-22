@@ -11,6 +11,8 @@ public class ProductPreviewDto {
     private BigDecimal basePrice;
     private BigDecimal cost;
     private Long quantity;
+    private Long desiredQuantity;
+    private Long currentQuantity;
     private String sku;
     private String barcode;
     private String description;
@@ -79,6 +81,22 @@ public class ProductPreviewDto {
 
     public void setTags(List<TagDto> tags) {
         this.tags = tags;
+    }
+
+    public Long getDesiredQuantity() {
+        return desiredQuantity;
+    }
+
+    public void setDesiredQuantity(Long desiredQuantity) {
+        this.desiredQuantity = desiredQuantity;
+    }
+
+    public Long getCurrentQuantity() {
+        return currentQuantity;
+    }
+
+    public void setCurrentQuantity(Long currentQuantity) {
+        this.currentQuantity = currentQuantity;
     }
 
     

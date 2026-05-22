@@ -60,6 +60,8 @@ public class ProductService {
             ProductEntity product = spe.getProduct();
 
             ProductPreviewDto dto = productMapper.toPreviewDto(product);
+            dto.setCurrentQuantity(spe.getCurrentQuantity());
+            dto.setDesiredQuantity(spe.getDesiredQuantity());
 
             if(product.getProductTags() != null){
                 List<TagDto> tags = product.getProductTags().stream()
