@@ -3,6 +3,7 @@ package com.nss.pibblest.modules.products.api;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.nss.pibblest.modules.tags.api.dto.TagDto;
 
 public class ProductPreviewDto {
@@ -11,7 +12,9 @@ public class ProductPreviewDto {
     private BigDecimal basePrice;
     private BigDecimal cost;
     private Long quantity;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long desiredQuantity;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private Long currentQuantity;
     private String sku;
     private String barcode;

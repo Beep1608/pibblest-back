@@ -22,12 +22,12 @@ public class StoreNotificationHelper {
 
     private final StoreRepository storeRepository;
     private final StoreSseService storeSseService;
-    private final KafkaTemplate<String, StorePreviewDto> kafkaTemplate;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
     private final SessionTrackerService sessionTrackerService;
     private final MessageSource messageSource;
 
     public StoreNotificationHelper(StoreRepository storeRepository, StoreSseService storeSseService,
-            KafkaTemplate<String, StorePreviewDto> kafkaTemplate, SessionTrackerService sessionTrackerService,
+            KafkaTemplate<Object, Object> kafkaTemplate, SessionTrackerService sessionTrackerService,
             MessageSource messageSource) {
         this.storeRepository = storeRepository;
         this.storeSseService = storeSseService;
@@ -48,7 +48,7 @@ public class StoreNotificationHelper {
                             LocaleContextHolder.getLocale());
                     freshDto.setOperatinTime(localizedTime);
 
-                    ProducerRecord<String, StorePreviewDto> record = new ProducerRecord<String, StorePreviewDto>(
+                    ProducerRecord<Object, Object> record = new ProducerRecord<>(
                             "store-realtime-updates", // Tópico
                             String.valueOf(freshDto.getId()), // Key (ID de la tienda)
                             freshDto);

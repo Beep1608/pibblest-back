@@ -30,7 +30,9 @@ public class ProductService {
 
     private final ProductMapper productMapper;
     private final TagMapper tagMapper;
-    public ProductService(ProductRespository productRespository,StoreProductRepository storeProductRepository ,ProductMapper productMapper, TagMapper tagMapper){
+
+    public ProductService(ProductRespository productRespository, StoreProductRepository storeProductRepository,
+            ProductMapper productMapper, TagMapper tagMapper) {
         this.productRespository = productRespository;
         this.storeProductRepository = storeProductRepository;
         this.productMapper = productMapper;
@@ -38,24 +40,26 @@ public class ProductService {
     }
 
     @Transactional
-    public ResponseEntity<CreateProductResponse> createProduct(CreateProductRequest request){
+    public ResponseEntity<CreateProductResponse> createProduct(CreateProductRequest request) {
 
         ProductEntity productRequest = productMapper.toEntity(request);
-        ProductEntity newProduct =  productRespository.save(productRequest);
+        ProductEntity newProduct = productRespository.save(productRequest);
 
         CreateProductResponse response = new CreateProductResponse(newProduct.getId(), "Su producto fue registrado");
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStore(Long storeId, String keyword,Pageable pageable){
-         Page<StoreProductEntity> storeProductEntities;
-        if(keyword == null || keyword.trim().isEmpty()){
-            storeProductEntities=  storeProductRepository.findByStoreIdAndIsActiveTrue(storeId, pageable);
-        }else{
-            storeProductEntities = storeProductRepository.findByStoreIdAndProduct_NameContainingIgnoreCaseAndIsActiveTrue(storeId, keyword, pageable);
+    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStore(Long storeId, String keyword,
+            Pageable pageable) {
+        Page<StoreProductEntity> storeProductEntities;
+        if (keyword == null || keyword.trim().isEmpty()) {
+            storeProductEntities = storeProductRepository.findByStoreIdAndIsActiveTrue(storeId, pageable);
+        } else {
+            storeProductEntities = storeProductRepository
+                    .findByStoreIdAndProduct_NameContainingIgnoreCaseAndIsActiveTrue(storeId, keyword, pageable);
         }
-         
+
         Page<ProductPreviewDto> productEntitys = storeProductEntities.map(spe -> {
             ProductEntity product = spe.getProduct();
 
@@ -63,10 +67,10 @@ public class ProductService {
             dto.setCurrentQuantity(spe.getCurrentQuantity());
             dto.setDesiredQuantity(spe.getDesiredQuantity());
 
-            if(product.getProductTags() != null){
+            if (product.getProductTags() != null) {
                 List<TagDto> tags = product.getProductTags().stream()
-                .map(tagProduct -> tagMapper.fromTagForProductToDto(tagProduct.getTagForProductsEntity()))
-                .collect(Collectors.toList());
+                        .map(tagProduct -> tagMapper.fromTagForProductToDto(tagProduct.getTagForProductsEntity()))
+                        .collect(Collectors.toList());
                 dto.setTags(tags);
             }
 
@@ -76,4 +80,20 @@ public class ProductService {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    public ResponseEntity<GetProductsFromStoreResponse> getAllProducts(String keyword, Pageable pageable) {
+        Page<ProductEntity> products;
+        if (keyword == null || keyword.trim().isEmpty()) {
+            products = productRespository.findAll(pageable);
+        } else {
+
+            products = productRespository.findByName(keyword, pageable);
+        }
+
+        Page<ProductPreviewDto> productsDto = products.map(p -> productMapper.toPreviewDto(p));
+
+        GetProductsFromStoreResponse response = new GetProductsFromStoreResponse(productsDto);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+
+    }
 }

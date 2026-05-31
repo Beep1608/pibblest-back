@@ -1,4 +1,4 @@
-package com.nss.pibblest.modules.owners.unit;
+package com.nss.pibblest.modules.owners.unit.service;
 
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;

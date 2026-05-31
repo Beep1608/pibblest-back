@@ -37,4 +37,10 @@ public class ProductController {
     @RequestParam(required=false) String keyword ,Pageable pageable){
         return productService.getProductsFromStore(storeId, keyword,pageable);
     }
+
+    @GetMapping("/all")
+    public ResponseEntity<GetProductsFromStoreResponse> getAll(@RequestParam(required = false) String keyword, Pageable pageable){
+        return productService.getAllProducts(keyword, pageable);
+        
+    }
 }
