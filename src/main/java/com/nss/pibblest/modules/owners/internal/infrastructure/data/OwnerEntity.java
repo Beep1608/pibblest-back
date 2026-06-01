@@ -20,8 +20,7 @@ public class OwnerEntity {
     @GeneratedValue
     private UUID id;
     
-    // CORRECCIÓN: unique=true añadido para evitar inconsistencias por concurrencia
-    @Column(name="company", nullable=false, unique=true, columnDefinition="TEXT")
+    @Column(name="company", nullable=false, unique=true, length=100)
     private String company;
 
     @Column(name="name", nullable=false, length=100)
@@ -30,13 +29,13 @@ public class OwnerEntity {
     @Column(name="last_name", nullable=false, length=100)
     private String lastName;
 
-    @Column(nullable=false, unique=true)
+    @Column(nullable=false, unique=true, length=255)
     private String email;
 
-    @Column(name="verified_at" ,nullable=true)
+    @Column(name="verified_at", nullable=true)
     private ZonedDateTime verifiedAt;
 
-    @Column(nullable=false)
+    @Column(nullable=false, length=72)
     private String password;
 
     @Column(name = "organization_code", unique = true, length = 20)
@@ -69,7 +68,7 @@ public class OwnerEntity {
         this.password = password;
         this.organizationCode = organizationCode;
         this.schemaName = schemaName;
-        this.isActive = false; // Explícito por defecto
+        this.isActive = false;
     }
 
     public UUID getId() { return id; }

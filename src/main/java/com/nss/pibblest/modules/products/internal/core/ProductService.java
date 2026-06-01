@@ -10,12 +10,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.nss.pibblest.modules.products.api.ProductPreviewDto;
+import com.nss.pibblest.modules.products.internal.core.exceptions.ProductNotFoundException;
 import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductEntity;
 import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductRespository;
 import com.nss.pibblest.modules.products.internal.mappers.ProductMapper;
 import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductRequest;
 import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductResponse;
+import com.nss.pibblest.modules.products.internal.web.requests.deleteProduct.DeleteProductResponse;
 import com.nss.pibblest.modules.products.internal.web.requests.getProductsFromStore.GetProductsFromStoreResponse;
+import com.nss.pibblest.modules.products.internal.web.requests.updateProduct.UpdateProductRequest;
+import com.nss.pibblest.modules.products.internal.web.requests.updateProduct.UpdateProductResponse;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductEntity;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductRepository;
 import com.nss.pibblest.modules.tags.api.dto.TagDto;
@@ -25,9 +29,9 @@ import jakarta.transaction.Transactional;
 
 @Service
 public class ProductService {
+    
     private final ProductRespository productRespository;
     private final StoreProductRepository storeProductRepository;
-
     private final ProductMapper productMapper;
     private final TagMapper tagMapper;
 
@@ -41,17 +45,14 @@ public class ProductService {
 
     @Transactional
     public ResponseEntity<CreateProductResponse> createProduct(CreateProductRequest request) {
-
         ProductEntity productRequest = productMapper.toEntity(request);
         ProductEntity newProduct = productRespository.save(productRequest);
 
         CreateProductResponse response = new CreateProductResponse(newProduct.getId(), "Su producto fue registrado");
-
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStore(Long storeId, String keyword,
-            Pageable pageable) {
+    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStore(Long storeId, String keyword, Pageable pageable) {
         Page<StoreProductEntity> storeProductEntities;
         if (keyword == null || keyword.trim().isEmpty()) {
             storeProductEntities = storeProductRepository.findByStoreIdAndIsActiveTrue(storeId, pageable);
@@ -62,7 +63,6 @@ public class ProductService {
 
         Page<ProductPreviewDto> productEntitys = storeProductEntities.map(spe -> {
             ProductEntity product = spe.getProduct();
-
             ProductPreviewDto dto = productMapper.toPreviewDto(product);
             dto.setCurrentQuantity(spe.getCurrentQuantity());
             dto.setDesiredQuantity(spe.getDesiredQuantity());
@@ -73,9 +73,9 @@ public class ProductService {
                         .collect(Collectors.toList());
                 dto.setTags(tags);
             }
-
             return dto;
         });
+        
         GetProductsFromStoreResponse response = new GetProductsFromStoreResponse(productEntitys);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -85,15 +85,44 @@ public class ProductService {
         if (keyword == null || keyword.trim().isEmpty()) {
             products = productRespository.findAll(pageable);
         } else {
-
             products = productRespository.findByName(keyword, pageable);
         }
 
-        Page<ProductPreviewDto> productsDto = products.map(p -> productMapper.toPreviewDto(p));
-
+        Page<ProductPreviewDto> productsDto = products.map(productMapper::toPreviewDto);
         GetProductsFromStoreResponse response = new GetProductsFromStoreResponse(productsDto);
-
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
 
+    public ResponseEntity<ProductPreviewDto> getProductById(Long id) {
+        ProductEntity product = productRespository.findById(id)
+                .orElseThrow(ProductNotFoundException::new);
+        
+        ProductPreviewDto dto = productMapper.toPreviewDto(product);
+        return ResponseEntity.status(HttpStatus.OK).body(dto);
+    }
+
+    @Transactional
+    public ResponseEntity<UpdateProductResponse> editProduct(Long id, UpdateProductRequest request) {
+        ProductEntity product = productRespository.findById(id)
+                .orElseThrow(ProductNotFoundException::new);
+
+        productMapper.updateEntityFromRequest(request, product);
+        product = productRespository.save(product);
+
+        ProductPreviewDto dto = productMapper.toPreviewDto(product);
+        UpdateProductResponse response = new UpdateProductResponse("product.updated.success", dto);
+        
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Transactional
+    public ResponseEntity<DeleteProductResponse> deleteProduct(Long id) {
+        ProductEntity product = productRespository.findById(id)
+                .orElseThrow(ProductNotFoundException::new);
+
+        productRespository.delete(product);
+
+        DeleteProductResponse response = new DeleteProductResponse("product.deleted.success");
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

@@ -58,6 +58,8 @@ src/main/java/com/nss/pibblest/modules/owners/internal/web/OwnerController.java
 src/main/java/com/nss/pibblest/modules/owners/internal/web/OwnerExceptionHandler.java
 src/main/java/com/nss/pibblest/modules/owners/internal/web/request/createOwner/CreateOwnerRequest.java
 src/main/java/com/nss/pibblest/modules/owners/internal/web/request/createOwner/CreateOwnerResponse.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/profile/OwnerProfileResponse.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/profile/UpdateProfileRequest.java
 src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenRequest.java
 src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenResponse.java
 src/main/java/com/nss/pibblest/modules/owners/internal/web/request/verifyOwner/VerifyOwnerRequest.java
@@ -144,55 +146,45 @@ public class OwnerNotVerifed extends TranslatedRuntimeException {
 }
 </file>
 
-<file path="src/main/java/com/nss/pibblest/modules/owners/internal/utils/IdentifierGenerator.java">
-package com.nss.pibblest.modules.owners.internal.utils;
-
-import java.util.UUID;
-import java.text.Normalizer;
-
-public class IdentifierGenerator {
-
-    public static String generateOrganizationCode(String company) {
-        String cleanName = sanitize(company);
-        String prefix = cleanName.length() > 4 ? cleanName.substring(0, 4) : cleanName;
-        // CORRECCIÓN: Entropía ampliada a 8 caracteres
-        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
-        
-        return prefix.toUpperCase() + "-" + suffix;
-    }
-
-    public static String generateSchemaName(String company) {
-        String cleanName = sanitize(company).toLowerCase();
-        // CORRECCIÓN: Entropía ampliada a 8 caracteres
-        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
-        
-        return cleanName + "_" + uniqueId + "_schema";
-    }
-
-    private static String sanitize(String input) {
-        if (input == null) return "ORG";
-        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
-        return normalized.replaceAll("[^\\p{ASCII}]", "") 
-                         .replaceAll("[^a-zA-Z0-9]", "") 
-                         .toUpperCase();
-    }
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenRequest.java">
-package com.nss.pibblest.modules.owners.internal.web.request.resendToken;
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/profile/OwnerProfileResponse.java">
+package com.nss.pibblest.modules.owners.internal.web.request.profile;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
+import java.time.ZonedDateTime;
+import java.util.UUID;
 
-@Schema(description = "Payload para solicitar el reenvío del token de verificación")
-public record ResendTokenRequest(
+@Schema(description = "Datos públicos del perfil del Owner")
+public record OwnerProfileResponse(
+    UUID id,
+    String company,
+    String name,
+    String lastName,
+    String email,
+    String organizationCode,
+    boolean isActive,
+    ZonedDateTime verifiedAt
+) {}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/profile/UpdateProfileRequest.java">
+package com.nss.pibblest.modules.owners.internal.web.request.profile;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+@Schema(description = "Payload para actualizar la información básica del perfil")
+public record UpdateProfileRequest(
     
-    @NotBlank(message="{validation.owner.email.notblank}")
-    @Email(message="{validation.owner.email.format}")
-    @Schema(description="Correo electrónico asociado a la cuenta", example="hola@example.com")
-    String email
+    @NotBlank(message = "{validation.owner.name.notblank}")
+    @Size(max = 100, message = "{validation.owner.name.size}")
+    @Schema(description="Nuevo nombre del propietario", example="Gru")
+    String name,
+
+    @NotBlank(message = "{validation.owner.lastname.notblank}")
+    @Size(max = 100, message = "{validation.owner.lastname.size}")
+    @Schema(description="Nuevo apellido del propietario", example="Felonius")
+    String lastName
 
 ) {}
 </file>
@@ -201,13 +193,13 @@ public record ResendTokenRequest(
 package com.nss.pibblest.modules.owners.internal.web.request.verifyOwner;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 public class VerifyOwnerRequest {
 
-    @NotBlank
-    @NotEmpty
-    private  String token;
+    @NotBlank(message = "{validation.owner.token.notblank}")
+    @Size(min = 10, max = 512, message = "{validation.owner.token.size}")
+    private String token;
 
     public String getToken() {
         return token;
@@ -216,9 +208,6 @@ public class VerifyOwnerRequest {
     public void setToken(String token) {
         this.token = token;
     }
-    
-
-    
 }
 </file>
 
@@ -264,6 +253,41 @@ public class OwnerAlreadyExists extends TranslatedRuntimeException {
 }
 </file>
 
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/utils/IdentifierGenerator.java">
+package com.nss.pibblest.modules.owners.internal.utils;
+
+import java.util.UUID;
+import java.text.Normalizer;
+
+public class IdentifierGenerator {
+
+    public static String generateOrganizationCode(String company) {
+        String cleanName = sanitize(company);
+        String prefix = cleanName.length() > 4 ? cleanName.substring(0, 4) : cleanName;
+        // CORRECCIÓN: Entropía ampliada a 8 caracteres
+        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        
+        return prefix.toUpperCase() + "-" + suffix;
+    }
+
+    public static String generateSchemaName(String company) {
+        String cleanName = sanitize(company).toLowerCase();
+        // CORRECCIÓN: Entropía ampliada a 8 caracteres
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        
+        return cleanName + "_" + uniqueId + "_schema";
+    }
+
+    private static String sanitize(String input) {
+        if (input == null) return "ORG";
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        return normalized.replaceAll("[^\\p{ASCII}]", "") 
+                         .replaceAll("[^a-zA-Z0-9]", "") 
+                         .toUpperCase();
+    }
+}
+</file>
+
 <file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/createOwner/CreateOwnerResponse.java">
 package com.nss.pibblest.modules.owners.internal.web.request.createOwner;
 
@@ -273,122 +297,22 @@ public record CreateOwnerResponse (
 ){}
 </file>
 
-<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenResponse.java">
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenRequest.java">
 package com.nss.pibblest.modules.owners.internal.web.request.resendToken;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
-@Schema(description = "Respuesta estándar tras solicitar un nuevo token")
-public record ResendTokenResponse(
+@Schema(description = "Payload para solicitar el reenvío del token de verificación")
+public record ResendTokenRequest(
     
-    @Schema(description="Mensaje de confirmación genérico por razones de seguridad")
-    String message
+    @NotBlank(message="{validation.owner.email.notblank}")
+    @Email(message="{validation.owner.email.format}")
+    @Schema(description="Correo electrónico asociado a la cuenta", example="hola@example.com")
+    String email
 
 ) {}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/owners/internal/infrastructure/data/OwnerEntity.java">
-package com.nss.pibblest.modules.owners.internal.infrastructure.data;
-
-import java.time.ZonedDateTime;
-import java.util.UUID;
-
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name = "owners", schema="identity")
-public class OwnerEntity {
-
-    @Id
-    @GeneratedValue
-    private UUID id;
-    
-    // CORRECCIÓN: unique=true añadido para evitar inconsistencias por concurrencia
-    @Column(name="company", nullable=false, unique=true, columnDefinition="TEXT")
-    private String company;
-
-    @Column(name="name", nullable=false, length=100)
-    private String name;
-
-    @Column(name="last_name", nullable=false, length=100)
-    private String lastName;
-
-    @Column(nullable=false, unique=true)
-    private String email;
-
-    @Column(name="verified_at" ,nullable=true)
-    private ZonedDateTime verifiedAt;
-
-    @Column(nullable=false)
-    private String password;
-
-    @Column(name = "organization_code", unique = true, length = 20)
-    private String organizationCode;
-
-    @Column(name = "is_active", nullable = false)
-    private boolean isActive;
-
-    @Column(name = "last_login")
-    private ZonedDateTime lastLogin;
-
-    @Column(name = "schema_name", unique = true, length = 63)
-    private String schemaName;
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private ZonedDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private ZonedDateTime updatedAt;
-
-    public OwnerEntity() {}
-
-    public OwnerEntity(String company, String name, String lastName, String email, String password, String organizationCode, String schemaName) {
-        this.company = company;
-        this.name = name;
-        this.lastName = lastName;
-        this.email = email;
-        this.password = password;
-        this.organizationCode = organizationCode;
-        this.schemaName = schemaName;
-        this.isActive = false; // Explícito por defecto
-    }
-
-    public UUID getId() { return id; }
-    public void setId(UUID id) { this.id = id; }
-    public String getCompany() { return company; }
-    public void setCompany(String company) { this.company = company; }
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-    public String getLastName() { return lastName; }
-    public void setLastName(String lastName) { this.lastName = lastName; }
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-    public String getOrganizationCode() { return organizationCode; }
-    public void setOrganizationCode(String organizationCode) { this.organizationCode = organizationCode; }
-    public boolean isIsActive() { return isActive; }
-    public void setIsActive(boolean isActive) { this.isActive = isActive; }
-    public ZonedDateTime getLastLogin() { return lastLogin; }
-    public void setLastLogin(ZonedDateTime lastLogin) { this.lastLogin = lastLogin; }
-    public String getSchemaName() { return schemaName; }
-    public void setSchemaName(String schemaName) { this.schemaName = schemaName; }
-    public ZonedDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(ZonedDateTime createdAt) { this.createdAt = createdAt; }
-    public ZonedDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(ZonedDateTime updatedAt) { this.updatedAt = updatedAt; }
-    public ZonedDateTime getVerifiedAt() { return verifiedAt; }
-    public void setVerifiedAt(ZonedDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
-}
 </file>
 
 <file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/OwnerExceptionHandler.java">
@@ -475,6 +399,124 @@ public class OwnerExceptionHandler {
 }
 </file>
 
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenResponse.java">
+package com.nss.pibblest.modules.owners.internal.web.request.resendToken;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Respuesta estándar tras solicitar un nuevo token")
+public record ResendTokenResponse(
+    
+    @Schema(description="Mensaje de confirmación genérico por razones de seguridad")
+    String message
+
+) {}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/infrastructure/data/OwnerEntity.java">
+package com.nss.pibblest.modules.owners.internal.infrastructure.data;
+
+import java.time.ZonedDateTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "owners", schema="identity")
+public class OwnerEntity {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+    
+    // CORRECCIÓN: unique=true añadido para evitar inconsistencias por concurrencia
+    @Column(name="company", nullable=false, unique=true, columnDefinition="TEXT")
+    private String company;
+
+    @Column(name="name", nullable=false, length=100)
+    private String name;
+
+    @Column(name="last_name", nullable=false, length=100)
+    private String lastName;
+
+    @Column(nullable=false, unique=true)
+    private String email;
+
+    @Column(name="verified_at" ,nullable=true)
+    private ZonedDateTime verifiedAt;
+
+    @Column(nullable=false)
+    private String password;
+
+    @Column(name = "organization_code", unique = true, length = 10)
+    private String organizationCode;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
+
+    @Column(name = "last_login")
+    private ZonedDateTime lastLogin;
+
+    @Column(name = "schema_name", unique = true, length = 63)
+    private String schemaName;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private ZonedDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private ZonedDateTime updatedAt;
+
+    public OwnerEntity() {}
+
+    public OwnerEntity(String company, String name, String lastName, String email, String password, String organizationCode, String schemaName) {
+        this.company = company;
+        this.name = name;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.organizationCode = organizationCode;
+        this.schemaName = schemaName;
+        this.isActive = false; // Explícito por defecto
+    }
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public String getCompany() { return company; }
+    public void setCompany(String company) { this.company = company; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getOrganizationCode() { return organizationCode; }
+    public void setOrganizationCode(String organizationCode) { this.organizationCode = organizationCode; }
+    public boolean isIsActive() { return isActive; }
+    public void setIsActive(boolean isActive) { this.isActive = isActive; }
+    public ZonedDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(ZonedDateTime lastLogin) { this.lastLogin = lastLogin; }
+    public String getSchemaName() { return schemaName; }
+    public void setSchemaName(String schemaName) { this.schemaName = schemaName; }
+    public ZonedDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(ZonedDateTime createdAt) { this.createdAt = createdAt; }
+    public ZonedDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(ZonedDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public ZonedDateTime getVerifiedAt() { return verifiedAt; }
+    public void setVerifiedAt(ZonedDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
+}
+</file>
+
 <file path="src/main/java/com/nss/pibblest/modules/owners/internal/infrastructure/data/OwnerRepository.java">
 package com.nss.pibblest.modules.owners.internal.infrastructure.data;
 
@@ -484,19 +526,41 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-
 @Repository
 public interface OwnerRepository extends JpaRepository<OwnerEntity, UUID> {
     
     boolean existsByEmail(String email);
     boolean existsByOrganizationCode(String organizationCode);
-
     boolean existsByCompany(String company);
+    boolean existsBySchemaName(String schemaName);
 
     Optional<OwnerEntity> findEntityByOrganizationCode(String organizationCode);
     Optional<OwnerEntity> findByEmail(String email);
+    Optional<OwnerEntity> findByCompany(String company);
+}
+</file>
 
-    Optional<OwnerEntity>  findByCompany(String company);
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/verifyOwner/VerifyOwnerResponse.java">
+package com.nss.pibblest.modules.owners.internal.web.request.verifyOwner;
+
+
+public class VerifyOwnerResponse  {
+
+    private String message;
+
+    public VerifyOwnerResponse(String message) {
+
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+    
 }
 </file>
 
@@ -505,15 +569,20 @@ package com.nss.pibblest.modules.owners.internal.mappers;
 
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import com.nss.pibblest.modules.owners.api.OwnerDto;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.OwnerProfileResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.UpdateProfileRequest;
 
 @Mapper(componentModel="spring")
-public interface  OwnerMapper {
+public interface OwnerMapper {
     
     OwnerDto toDto(OwnerEntity entity);
+    
+    OwnerProfileResponse toProfileResponse(OwnerEntity entity);
 
     @Mapping(target= "id", ignore=true)
     @Mapping(target= "isActive", ignore=true)
@@ -524,6 +593,20 @@ public interface  OwnerMapper {
     @Mapping(target= "organizationCode", ignore=true)
     @Mapping(target= "schemaName", ignore=true)
     OwnerEntity toEntity(CreateOwnerRequest request);
+
+    // Actualiza una entidad existente ignorando los campos críticos
+    @Mapping(target= "id", ignore=true)
+    @Mapping(target= "company", ignore=true)
+    @Mapping(target= "email", ignore=true)
+    @Mapping(target= "password", ignore=true)
+    @Mapping(target= "isActive", ignore=true)
+    @Mapping(target= "lastLogin", ignore=true)
+    @Mapping(target= "createdAt", ignore=true)
+    @Mapping(target= "updatedAt", ignore=true)
+    @Mapping(target= "verifiedAt", ignore=true)
+    @Mapping(target= "organizationCode", ignore=true)
+    @Mapping(target= "schemaName", ignore=true)
+    void updateEntityFromRequest(UpdateProfileRequest request, @MappingTarget OwnerEntity entity);
 }
 </file>
 
@@ -533,29 +616,35 @@ package com.nss.pibblest.modules.owners.internal.web.request.createOwner;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class CreateOwnerRequest {
 
     @NotBlank(message="{validation.owner.company.notblank}")
+    @Size(max = 100, message = "{validation.owner.company.size}")
     @Schema(description="Nombre de la empresa del propietario", example="Minion Inc.")
     private String company;
 
     @NotBlank(message = "{validation.owner.name.notblank}")
+    @Size(max = 100, message = "{validation.owner.name.size}")
     @Schema(description="Nombre del propietario", example="Papoi")
     private String name;
 
     @NotBlank(message = "{validation.owner.lastname.notblank}")
+    @Size(max = 100, message = "{validation.owner.lastname.size}")
     @Schema(description="Apellido del propietario", example="Morales")
     private String lastName;
 
     @Email(message="{validation.owner.email.format}") 
     @NotBlank(message = "{validation.owner.email.notblank}")
+    @Size(max = 255, message = "{validation.owner.email.size}")
     @Schema(description="Email del propietario", example="hola@example.com")
     private String email;
 
     @NotBlank(message = "{validation.owner.password.notblank}") 
-    @Size(min = 8) 
+    @Size(min = 8, max = 64, message = "{validation.owner.password.size}") 
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).*$", message = "{validation.owner.password.complexity}")
     @Schema(description="Password de la cuenta", example="Secreta123!")
     private String password;
 
@@ -593,41 +682,15 @@ public class CreateOwnerRequest {
 }
 </file>
 
-<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/verifyOwner/VerifyOwnerResponse.java">
-package com.nss.pibblest.modules.owners.internal.web.request.verifyOwner;
-
-
-public class VerifyOwnerResponse  {
-
-    private String message;
-
-    public VerifyOwnerResponse(String message) {
-
-        this.message = message;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    
-}
-</file>
-
 <file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/OwnerController.java">
 package com.nss.pibblest.modules.owners.internal.web;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -635,6 +698,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.nss.pibblest.modules.owners.internal.core.OwnerService;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.OwnerProfileResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.UpdateProfileRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenResponse;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
@@ -658,60 +723,47 @@ public class OwnerController {
     }
 
     @PostMapping("/register")
-    @Operation(
-        summary="Registrar un owner",
-        description="Registra un nuevo owner y genera su código de organización y esquema."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode="201", description="Owner registrado exitosamente"),
-        @ApiResponse(responseCode="400", description="Datos de entrada inválidos"),
-        @ApiResponse(responseCode="409", description="Conflicto: El correo o la empresa ya están registrados"),
-        @ApiResponse(responseCode="500", description="Error interno en el servidor")
-    })
+    @Operation(summary="Registrar un owner")
     public ResponseEntity<CreateOwnerResponse> registerOwner(@Valid @RequestBody CreateOwnerRequest request){
         return ownerService.registerOwner(request);
     }
 
-    // CORRECCIÓN: POST en lugar de GET, uso de @Valid y RequestBody, y Documentación OpenAPI
     @PostMapping("/verify")
-    @Operation(
-        summary="Verificar cuenta de Owner",
-        description="Activa la cuenta del Owner utilizando el token de un solo uso (OTP)."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode="200", description="Cuenta verificada y activada exitosamente"),
-        @ApiResponse(responseCode="400", description="Datos inválidos (Ej. Token vacío)"),
-        @ApiResponse(responseCode="403", description="Token inválido, expirado o acceso denegado"),
-        @ApiResponse(responseCode="409", description="La cuenta del Owner ya se encontraba verificada"),
-        @ApiResponse(responseCode="500", description="Error interno en el servidor")
-    })
+    @Operation(summary="Verificar cuenta de Owner")
     public ResponseEntity<VerifyOwnerResponse> verifyOwner(@Valid @RequestBody VerifyOwnerRequest request){
         return ownerService.verifyOwner(request);
     }
 
     @PostMapping("/resend-token")
-    @Operation(
-        summary="Reenviar token de verificación",
-        description="Genera e invalida tokens anteriores para reenviar un nuevo OTP al correo del Owner."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode="200", description="Solicitud procesada (mensaje genérico por seguridad)"),
-        @ApiResponse(responseCode="400", description="Formato de correo inválido")
-    })
+    @Operation(summary="Reenviar token de verificación")
     public ResponseEntity<ResendTokenResponse> resendToken(@Valid @RequestBody ResendTokenRequest request){
         return ownerService.resendToken(request);
     }
 
     @GetMapping("/profile")
-    @Operation(summary="Obtener perfil", description="Retorna el perfil del Owner autenticado.")
-    public ResponseEntity<Map<String,Object>> getMyProfile() {
+    @Operation(
+        summary="Obtener perfil", 
+        description="Retorna el perfil completo del Owner autenticado basado en su JWT."
+    )
+    @ApiResponse(responseCode="200", description="Perfil obtenido exitosamente")
+    public ResponseEntity<OwnerProfileResponse> getMyProfile() {
        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+       // El nombre del usuario en el token suele ser el email en configuraciones estándar
+       return ownerService.getProfile(authentication.getName());
+    }
 
-       Map<String,Object> response = new HashMap<>();
-       response.put("email", authentication.getName());
-       response.put("message", "El token es valido");
-
-       return ResponseEntity.ok(response);
+    @PutMapping("/profile")
+    @Operation(
+        summary="Actualizar perfil", 
+        description="Actualiza la información básica (nombre y apellido) del Owner autenticado."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode="200", description="Perfil actualizado exitosamente"),
+        @ApiResponse(responseCode="400", description="Datos de validación incorrectos")
+    })
+    public ResponseEntity<OwnerProfileResponse> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+       return ownerService.updateProfile(authentication.getName(), request);
     }
 }
 </file>
@@ -745,6 +797,8 @@ import com.nss.pibblest.modules.owners.internal.mappers.OwnerMapper;
 import com.nss.pibblest.modules.owners.internal.utils.IdentifierGenerator;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.OwnerProfileResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.UpdateProfileRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenResponse;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
@@ -754,6 +808,7 @@ import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenEx
 import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenInvalid;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerEntity;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerRepository;
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
 
 @Service
 public class OwnerService {
@@ -791,8 +846,24 @@ public class OwnerService {
         }
 
         OwnerEntity ownerEntity = ownerMapper.toEntity(request);
-        ownerEntity.setOrganizationCode(IdentifierGenerator.generateOrganizationCode(request.getCompany()));
-        ownerEntity.setSchemaName(IdentifierGenerator.generateSchemaName(request.getCompany()));
+        
+        boolean identifiersAssigned = false;
+        for (int i = 0; i < 3; i++) {
+            String orgCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
+            String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
+            
+            if (!ownerRepository.existsByOrganizationCode(orgCode) && !ownerRepository.existsBySchemaName(schemaName)) {
+                ownerEntity.setOrganizationCode(orgCode);
+                ownerEntity.setSchemaName(schemaName);
+                identifiersAssigned = true;
+                break;
+            }
+        }
+        
+        if (!identifiersAssigned) {
+            throw new TranslatedRuntimeException("error.owner.registration.collision", request.getCompany());
+        }
+
         ownerEntity.setPassword(encoder.encode(request.getPassword()));
         ownerEntity.setIsActive(false);
 
@@ -845,7 +916,6 @@ public class OwnerService {
 
     @Transactional
     public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request) {
-        // CORRECCIÓN: Uso de .email() ya que ahora es un Record
         Optional<OwnerEntity> ownerEntity = ownerRepository.findByEmail(request.email());
 
         ownerEntity.ifPresent(owner -> {
@@ -869,6 +939,25 @@ public class OwnerService {
         ResendTokenResponse response = new ResendTokenResponse(message);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<OwnerProfileResponse> getProfile(String email) {
+        OwnerEntity owner = ownerRepository.findByEmail(email)
+                .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", email));
+        
+        return ResponseEntity.ok(ownerMapper.toProfileResponse(owner));
+    }
+
+    @Transactional
+    public ResponseEntity<OwnerProfileResponse> updateProfile(String email, UpdateProfileRequest request) {
+        OwnerEntity owner = ownerRepository.findByEmail(email)
+                .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", email));
+        
+        ownerMapper.updateEntityFromRequest(request, owner);
+        ownerRepository.save(owner);
+        
+        return ResponseEntity.ok(ownerMapper.toProfileResponse(owner));
     }
 }
 </file>

@@ -37,6 +37,7 @@ import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenEx
 import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenInvalid;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerEntity;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerRepository;
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
 
 @Service
 public class OwnerService {
@@ -74,8 +75,24 @@ public class OwnerService {
         }
 
         OwnerEntity ownerEntity = ownerMapper.toEntity(request);
-        ownerEntity.setOrganizationCode(IdentifierGenerator.generateOrganizationCode(request.getCompany()));
-        ownerEntity.setSchemaName(IdentifierGenerator.generateSchemaName(request.getCompany()));
+        
+        boolean identifiersAssigned = false;
+        for (int i = 0; i < 3; i++) {
+            String orgCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
+            String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
+            
+            if (!ownerRepository.existsByOrganizationCode(orgCode) && !ownerRepository.existsBySchemaName(schemaName)) {
+                ownerEntity.setOrganizationCode(orgCode);
+                ownerEntity.setSchemaName(schemaName);
+                identifiersAssigned = true;
+                break;
+            }
+        }
+        
+        if (!identifiersAssigned) {
+            throw new TranslatedRuntimeException("error.owner.registration.collision", request.getCompany());
+        }
+
         ownerEntity.setPassword(encoder.encode(request.getPassword()));
         ownerEntity.setIsActive(false);
 

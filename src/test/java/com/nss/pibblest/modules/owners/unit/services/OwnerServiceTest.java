@@ -23,6 +23,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.nss.pibblest.modules.owners.api.events.OwnerGenerateVerifyToken;
@@ -53,7 +54,7 @@ class OwnerServiceTest {
     @Mock private OwnerMapper ownerMapper;
     @Mock private ApplicationEventPublisher events;
     @Mock private OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
-    @Mock private JwtService jwtService;
+    @MockitoBean private JwtService jwtService;
     @Mock private MessageSource messageSource;
 
     @InjectMocks
