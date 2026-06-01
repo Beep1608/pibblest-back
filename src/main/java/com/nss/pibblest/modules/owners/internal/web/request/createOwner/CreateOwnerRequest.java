@@ -5,7 +5,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-
 public class CreateOwnerRequest {
 
     @NotBlank(message="{validation.owner.company.notblank}")
@@ -20,32 +19,21 @@ public class CreateOwnerRequest {
     @Schema(description="Apellido del propietario", example="Morales")
     private String lastName;
 
-    @Email(message="{validation.owner.email.format}") @NotBlank(message = "{validation.owner.email.notblank}")
+    @Email(message="{validation.owner.email.format}") 
+    @NotBlank(message = "{validation.owner.email.notblank}")
     @Schema(description="Email del propietario", example="hola@example.com")
     private String email;
 
-    @NotBlank(message = "{validation.owner.password.notblank}") @Size(min = 8) 
-    @Schema(description="Password de la cuenta", example="hola@example.com")
+    @NotBlank(message = "{validation.owner.password.notblank}") 
+    @Size(min = 8) 
+    @Schema(description="Password de la cuenta", example="Secreta123!")
     private String password;
 
-    private String organizationCode;
-
-    private String schemaName;
-
-    // Constructor vacío (necesario para frameworks como Jackson/Spring)
     public CreateOwnerRequest() {}
 
     public CreateOwnerRequest(String company){
         this.company = company;
-        
     }
-
-    /**
-     * Método para inicializar los valores del backend basados en la compañía.
-     * Puedes llamar a esto desde tu Service.
-     */
-
-    // --- Getters y Setters ---
 
     public String getCompany() { return company; }
     public void setCompany(String company) { this.company = company; }
@@ -61,12 +49,6 @@ public class CreateOwnerRequest {
 
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
-
-    public String getOrganizationCode() { return organizationCode; }
-    public void setOrganizationCode(String organizationCode) { this.organizationCode = organizationCode; }
-
-    public String getSchemaName() { return schemaName; }
-    public void setSchemaName(String schemaName) { this.schemaName = schemaName; }
     
     @Override
     public String toString() {
@@ -75,9 +57,7 @@ public class CreateOwnerRequest {
                 ", name='" + name + '\'' +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
-                ", password='[PROTECTED]'" + // ¡Contraseña enmascarada!
-                ", organizationCode='" + organizationCode + '\'' +
-                ", schemaName='" + schemaName + '\'' +
+                ", password='[PROTECTED]'" + 
                 '}';
     }
 }

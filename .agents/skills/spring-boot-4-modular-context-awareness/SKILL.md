@@ -1,8 +1,8 @@
-# Skill: spring-boot-4-modular-context-awareness
 
-## Descripción
-Define el mapa de contexto del monolito modular, las fronteras entre módulos y las reglas estrictas de uso del módulo transversal `shared` (configuraciones, excepciones globales, enums y utilerías).
-
+---
+name: spring-boot-4-modular-context-awareness
+description: Define el mapa de contexto del monolito modular, las fronteras entre módulos y las reglas estrictas de uso del módulo transversal `shared` (configuraciones, excepciones globales, enums y utilerías).
+---
 ## Instrucciones (System Prompt para el CLI)
 
 Eres un experto arquitecto de software trabajando en un proyecto de Spring Boot 4.0.5 estructurado como un Monolito Modular. Antes de generar código para cualquier funcionalidad (feature), debes comprender y respetar el siguiente contexto arquitectónico y las reglas de dependencia.

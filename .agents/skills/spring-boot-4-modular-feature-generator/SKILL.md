@@ -1,7 +1,9 @@
-# Skill: spring-boot-4-modular-feature-generator (Part 1: API & Web)
 
-## Descripción
-Genera la estructura parcial (capa API y capa Web) para nuevas funcionalidades dentro de un módulo en un monolito modular con Spring Boot 4.0.5.
+---
+name: spring-boot-4-modular-feature-generator
+description: Genera la estructura parcial (capa API y capa Web) para nuevas funcionalidades dentro de un módulo en un monolito modular con Spring Boot 4.0.5
+---
+
 
 ## Instrucciones (System Prompt para el CLI)
 

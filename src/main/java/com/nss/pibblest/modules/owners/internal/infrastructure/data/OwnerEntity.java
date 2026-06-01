@@ -20,7 +20,8 @@ public class OwnerEntity {
     @GeneratedValue
     private UUID id;
     
-    @Column(name="company", nullable=false, columnDefinition="TEXT")
+    // CORRECCIÓN: unique=true añadido para evitar inconsistencias por concurrencia
+    @Column(name="company", nullable=false, unique=true, columnDefinition="TEXT")
     private String company;
 
     @Column(name="name", nullable=false, length=100)
@@ -32,13 +33,13 @@ public class OwnerEntity {
     @Column(nullable=false, unique=true)
     private String email;
 
-    @Column(name="verified_at" ,nullable=true, unique=false)
+    @Column(name="verified_at" ,nullable=true)
     private ZonedDateTime verifiedAt;
 
     @Column(nullable=false)
     private String password;
 
-    @Column(name = "organization_code", unique = true, length = 10)
+    @Column(name = "organization_code", unique = true, length = 20)
     private String organizationCode;
 
     @Column(name = "is_active", nullable = false)
@@ -60,7 +61,6 @@ public class OwnerEntity {
 
     public OwnerEntity() {}
 
-
     public OwnerEntity(String company, String name, String lastName, String email, String password, String organizationCode, String schemaName) {
         this.company = company;
         this.name = name;
@@ -69,113 +69,33 @@ public class OwnerEntity {
         this.password = password;
         this.organizationCode = organizationCode;
         this.schemaName = schemaName;
+        this.isActive = false; // Explícito por defecto
     }
 
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-     public String getCompany() {
-        return company;
-    }
-
-
-    public void setCompany(String company) {
-        this.company = company;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getLastName() {
-        return lastName;
-    }
-
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    public String getOrganizationCode() {
-        return organizationCode;
-    }
-
-    public void setOrganizationCode(String organizationCode) {
-        this.organizationCode = organizationCode;
-    }
-
-    public boolean isIsActive() {
-        return isActive;
-    }
-
-    public void setIsActive(boolean isActive) {
-        this.isActive = isActive;
-    }
-
-    public ZonedDateTime getLastLogin() {
-        return lastLogin;
-    }
-
-    public void setLastLogin(ZonedDateTime lastLogin) {
-        this.lastLogin = lastLogin;
-    }
-
-    public String getSchemaName() {
-        return schemaName;
-    }
-
-    public void setSchemaName(String schemaName) {
-        this.schemaName = schemaName;
-    }
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public ZonedDateTime getVerifiedAt() {
-        return verifiedAt;
-    }
-
-    public void setVerifiedAt(ZonedDateTime verifiedAt) {
-        this.verifiedAt = verifiedAt;
-    }
-    
-    
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public String getCompany() { return company; }
+    public void setCompany(String company) { this.company = company; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getOrganizationCode() { return organizationCode; }
+    public void setOrganizationCode(String organizationCode) { this.organizationCode = organizationCode; }
+    public boolean isIsActive() { return isActive; }
+    public void setIsActive(boolean isActive) { this.isActive = isActive; }
+    public ZonedDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(ZonedDateTime lastLogin) { this.lastLogin = lastLogin; }
+    public String getSchemaName() { return schemaName; }
+    public void setSchemaName(String schemaName) { this.schemaName = schemaName; }
+    public ZonedDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(ZonedDateTime createdAt) { this.createdAt = createdAt; }
+    public ZonedDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(ZonedDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public ZonedDateTime getVerifiedAt() { return verifiedAt; }
+    public void setVerifiedAt(ZonedDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
 }

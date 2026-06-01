@@ -1,20 +1,11 @@
 package com.nss.pibblest.modules.owners.internal.web.request.resendToken;
 
-public class ResendTokenResponse {
+import io.swagger.v3.oas.annotations.media.Schema;
 
-    private String message;
-
-    public ResendTokenResponse(String message){
-        this.message = message;
-    }
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
+@Schema(description = "Respuesta estándar tras solicitar un nuevo token")
+public record ResendTokenResponse(
     
-    
-}
+    @Schema(description="Mensaje de confirmación genérico por razones de seguridad")
+    String message
+
+) {}

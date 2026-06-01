@@ -26,6 +26,8 @@ import com.nss.pibblest.modules.owners.internal.mappers.OwnerMapper;
 import com.nss.pibblest.modules.owners.internal.utils.IdentifierGenerator;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.OwnerProfileResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.UpdateProfileRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenResponse;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
@@ -45,6 +47,7 @@ public class OwnerService {
     private final OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
     private final JwtService jwtService;
     private final MessageSource messageSource;
+    
     @Value("${time.to.wait.resend.token}")
     private long timeToWaitForNextResend;
 
@@ -62,7 +65,6 @@ public class OwnerService {
 
     @Transactional
     public ResponseEntity<CreateOwnerResponse> registerOwner(CreateOwnerRequest request) {
-
         if (ownerRepository.existsByEmail(request.getEmail())) {
             throw new OwnerAlreadyExists("error.owner.email.exists", request.getEmail());
         }
@@ -71,14 +73,11 @@ public class OwnerService {
             throw new OwnerAlreadyExists("error.owner.company.exists", request.getCompany());
         }
 
-        String organizationCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
-        String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
-
-        request.setOrganizationCode(organizationCode);
-        request.setSchemaName(schemaName);
-
         OwnerEntity ownerEntity = ownerMapper.toEntity(request);
-        ownerEntity.setPassword(encoder.encode(ownerEntity.getPassword()));
+        ownerEntity.setOrganizationCode(IdentifierGenerator.generateOrganizationCode(request.getCompany()));
+        ownerEntity.setSchemaName(IdentifierGenerator.generateSchemaName(request.getCompany()));
+        ownerEntity.setPassword(encoder.encode(request.getPassword()));
+        ownerEntity.setIsActive(false);
 
         OwnerEntity ownerCreated = ownerRepository.save(ownerEntity);
 
@@ -88,15 +87,17 @@ public class OwnerService {
                 ownerCreated.getEmail(),
                 ownerCreated.getSchemaName()));
 
-        String token = jwtService.generateToken(ownerCreated.getId(), ownerCreated.getName(), ownerCreated.getSchemaName(),true);
-        String message = messageSource.getMessage("response.created.owner", null,LocaleContextHolder.getLocale());
-        CreateOwnerResponse responseBody = new CreateOwnerResponse(message,token);
+        String token = jwtService.generateToken(ownerCreated.getId(), ownerCreated.getName(), ownerCreated.getSchemaName(), false);
+        String message = messageSource.getMessage("response.created.owner", null, LocaleContextHolder.getLocale());
+        
+        CreateOwnerResponse responseBody = new CreateOwnerResponse(message, token);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
     }
 
     @Transactional
-    public ResponseEntity<VerifyOwnerResponse> verifyOwner(String token) {
-
+    public ResponseEntity<VerifyOwnerResponse> verifyOwner(VerifyOwnerRequest request) {
+        String token = request.getToken(); 
+        
         OneTimeTokenOwnerEntity tokenOwnerEntity = oneTimeTokenOwnerRepository.findByTokenValue(token)
                 .orElseThrow(() -> new OneTimeTokenInvalid("error.token.invalid", null));
 
@@ -112,6 +113,7 @@ public class OwnerService {
                 .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", tokenOwnerEntity.getOwnerId()));
 
         ownerEntity.setVerifiedAt(LocalDateTime.now().atZone(ZoneId.systemDefault()));
+        ownerEntity.setIsActive(true); 
         ownerRepository.save(ownerEntity);
 
         tokenOwnerEntity.setUsed(true);
@@ -126,7 +128,7 @@ public class OwnerService {
 
     @Transactional
     public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request) {
-        Optional<OwnerEntity> ownerEntity = ownerRepository.findByEmail(request.getEmail());
+        Optional<OwnerEntity> ownerEntity = ownerRepository.findByEmail(request.email());
 
         ownerEntity.ifPresent(owner -> {
             boolean isAlreadyVerified = owner.getVerifiedAt() != null;
@@ -141,16 +143,32 @@ public class OwnerService {
 
             if (canRequestNewToken && !isAlreadyVerified) {
                 oneTimeTokenOwnerRepository.expireAllActiveTokensByOwnerId(owner.getId());
-
                 events.publishEvent(new OwnerGenerateVerifyToken(owner.getEmail(), owner.getId()));
             }
         });
 
         String message = messageSource.getMessage("response.resend.token.owner", null, LocaleContextHolder.getLocale());
-
         ResendTokenResponse response = new ResendTokenResponse(message);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @Transactional(readOnly = true)
+    public ResponseEntity<OwnerProfileResponse> getProfile(String email) {
+        OwnerEntity owner = ownerRepository.findByEmail(email)
+                .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", email));
+        
+        return ResponseEntity.ok(ownerMapper.toProfileResponse(owner));
+    }
+
+    @Transactional
+    public ResponseEntity<OwnerProfileResponse> updateProfile(String email, UpdateProfileRequest request) {
+        OwnerEntity owner = ownerRepository.findByEmail(email)
+                .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", email));
+        
+        ownerMapper.updateEntityFromRequest(request, owner);
+        ownerRepository.save(owner);
+        
+        return ResponseEntity.ok(ownerMapper.toProfileResponse(owner));
+    }
 }
