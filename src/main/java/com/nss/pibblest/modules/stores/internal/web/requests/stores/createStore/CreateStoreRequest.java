@@ -1,7 +1,7 @@
 package com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore;
 
 import java.util.Set;
-import com.nss.pibblest.shared.enums.StoreStatus;
+import com.nss.pibblest.shared.StoreStatus;
 
 public class CreateStoreRequest {
     private String name;

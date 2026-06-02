@@ -1,4 +1,4 @@
-package com.nss.pibblest.shared.enums;
+package com.nss.pibblest.shared;
 
 public enum Role {
     OWNER,

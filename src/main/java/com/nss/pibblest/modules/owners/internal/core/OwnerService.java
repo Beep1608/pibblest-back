@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationEventPublisher;
@@ -37,6 +38,8 @@ import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenEx
 import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenInvalid;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerEntity;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerRepository;
+import com.nss.pibblest.shared.Permission;
+import com.nss.pibblest.shared.Role;
 import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
 
 @Service
@@ -105,7 +108,16 @@ public class OwnerService {
                 ownerCreated.getSchemaName(),
                 ownerCreated.getPassword()));
 
-        String token = jwtService.generateToken(ownerCreated.getId(), ownerCreated.getName(), ownerCreated.getSchemaName(), false);
+        // CORRECCIÓN APLICADA: Se añaden los parámetros true, Role.OWNER, y Set.of(Permission.values())
+        String token = jwtService.generateToken(
+                ownerCreated.getId(), 
+                ownerCreated.getName(), 
+                ownerCreated.getSchemaName(), 
+                true, 
+                Role.OWNER, 
+                Set.of(Permission.values())
+        );
+        
         String message = messageSource.getMessage("response.created.owner", null, LocaleContextHolder.getLocale());
         
         CreateOwnerResponse responseBody = new CreateOwnerResponse(message, token);

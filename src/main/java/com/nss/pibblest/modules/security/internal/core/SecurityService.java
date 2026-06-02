@@ -20,8 +20,8 @@ import com.nss.pibblest.modules.security.internal.web.request.login.LoginRequest
 import com.nss.pibblest.modules.security.internal.web.request.login.LoginResponse;
 import com.nss.pibblest.modules.tenant.SessionTrackerService;
 import com.nss.pibblest.modules.tenant.TenantContext;
-import com.nss.pibblest.shared.enums.Permission;
-import com.nss.pibblest.shared.enums.Role;
+import com.nss.pibblest.shared.Permission;
+import com.nss.pibblest.shared.Role;
 
 @Service
 public class SecurityService {

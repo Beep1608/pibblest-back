@@ -11,8 +11,8 @@ import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeE
 import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeRepository;
 import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
 import com.nss.pibblest.modules.tenant.TenantContext;
-import com.nss.pibblest.shared.enums.Permission;
-import com.nss.pibblest.shared.enums.Role;
+import com.nss.pibblest.shared.Permission;
+import com.nss.pibblest.shared.Role;
 
 @Component
 public class OwnerSyncEventListener {

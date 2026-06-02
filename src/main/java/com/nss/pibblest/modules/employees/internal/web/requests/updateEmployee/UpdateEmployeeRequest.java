@@ -1,9 +1,9 @@
-package com.nss.pibblest.modules.employees.internal.web.requests.createEmployee;
+package com.nss.pibblest.modules.employees.internal.web.requests.updateEmployee;
 
 import java.util.Set;
 import jakarta.validation.constraints.NotBlank;
 
-public class CreateEmployeeRequest {
+public class UpdateEmployeeRequest {
     
     @NotBlank(message = "{employee.validation.name.required}")
     private String name;
@@ -12,14 +12,6 @@ public class CreateEmployeeRequest {
     private String lastName;
     
     private Set<Long> storeIds;
-
-    public CreateEmployeeRequest(String name, String lastName, Set<Long> storeIds) {
-        this.name = name;
-        this.lastName = lastName;
-        this.storeIds = storeIds;
-    }
-    
-    public CreateEmployeeRequest() {}
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }

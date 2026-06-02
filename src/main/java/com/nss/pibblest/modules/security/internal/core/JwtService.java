@@ -14,8 +14,8 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.nss.pibblest.shared.enums.Permission;
-import com.nss.pibblest.shared.enums.Role;
+import com.nss.pibblest.shared.Permission;
+import com.nss.pibblest.shared.Role;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;

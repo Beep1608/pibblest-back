@@ -1,4 +1,4 @@
-package com.nss.pibblest.shared.enums;
+package com.nss.pibblest.shared;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -14,7 +14,7 @@ public enum StoreStatus {
         this.value = value;
     }
 
-    @JsonValue // Permite que Spring reciba y envíe el texto en minúsculas en el JSON
+    @JsonValue
     public String getValue() {
         return value;
     }
