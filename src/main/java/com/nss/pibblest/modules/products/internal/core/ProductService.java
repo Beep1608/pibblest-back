@@ -85,10 +85,21 @@ public class ProductService {
         if (keyword == null || keyword.trim().isEmpty()) {
             products = productRespository.findAll(pageable);
         } else {
-            products = productRespository.findByName(keyword, pageable);
+            products = productRespository.findByNameContainingIgnoreCase(keyword, pageable);
         }
 
-        Page<ProductPreviewDto> productsDto = products.map(productMapper::toPreviewDto);
+        Page<ProductPreviewDto> productsDto = products.map( p -> {
+           
+            ProductPreviewDto dto = productMapper.toPreviewDto(p);
+
+            if (p.getProductTags() != null) {
+                List<TagDto> tags = p.getProductTags().stream()
+                        .map(tagProduct -> tagMapper.fromTagForProductToDto(tagProduct.getTagForProductsEntity()))
+                        .collect(Collectors.toList());
+                dto.setTags(tags);
+            }
+            return dto;
+        });
         GetProductsFromStoreResponse response = new GetProductsFromStoreResponse(productsDto);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

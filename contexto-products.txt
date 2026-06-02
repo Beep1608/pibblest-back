@@ -32,7 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: src/main/java/com/nss/pibblest/modules/products/**/*.java
+- Only files matching these patterns are included: src/main/java/com/nss/pibblest/modules/products/internal/web/*.java, src/main/java/com/nss/pibblest/modules/products/internal/web/requests/getProductsFromStore/GetProductsFromStoreResponse.java
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -41,265 +41,12 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
-src/main/java/com/nss/pibblest/modules/products/api/ProductPreviewDto.java
-src/main/java/com/nss/pibblest/modules/products/internal/core/exceptions/InvalidProductQuantity.java
-src/main/java/com/nss/pibblest/modules/products/internal/core/ProductService.java
-src/main/java/com/nss/pibblest/modules/products/internal/infrastructure/data/ProductEntity.java
-src/main/java/com/nss/pibblest/modules/products/internal/infrastructure/data/ProductRespository.java
-src/main/java/com/nss/pibblest/modules/products/internal/infrastructure/data/ProductTagEntity.java
-src/main/java/com/nss/pibblest/modules/products/internal/infrastructure/data/ProductTagId.java
-src/main/java/com/nss/pibblest/modules/products/internal/mappers/ProductMapper.java
 src/main/java/com/nss/pibblest/modules/products/internal/web/ProductController.java
-src/main/java/com/nss/pibblest/modules/products/internal/web/requests/createProduct/CreateProductRequest.java
-src/main/java/com/nss/pibblest/modules/products/internal/web/requests/createProduct/CreateProductResponse.java
-src/main/java/com/nss/pibblest/modules/products/internal/web/requests/getProductsFromStore/GetProductsFromStoreRequest.java
 src/main/java/com/nss/pibblest/modules/products/internal/web/requests/getProductsFromStore/GetProductsFromStoreResponse.java
-src/main/java/com/nss/pibblest/modules/products/internal/web/requests/updateProduct/UpdateProductRequest.java
-src/main/java/com/nss/pibblest/modules/products/internal/web/requests/updateProduct/UpdateProductResponse.java
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/web/requests/updateProduct/UpdateProductRequest.java">
-package com.nss.pibblest.modules.products.internal.web.requests.updateProduct;
-
-public class UpdateProductRequest {
-
-    Long id;
-    
-    
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/web/requests/updateProduct/UpdateProductResponse.java">
-package com.nss.pibblest.modules.products.internal.web.requests.updateProduct;
-
-import com.nss.pibblest.modules.products.api.ProductPreviewDto;
-
-public class UpdateProductResponse {
-    String message;
-    ProductPreviewDto dto;
-    public UpdateProductResponse(String message, ProductPreviewDto dto) {
-        this.message = message;
-        this.dto = dto;
-    }
-    public String getMessage() {
-        return message;
-    }
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    public ProductPreviewDto getDto() {
-        return dto;
-    }
-    public void setDto(ProductPreviewDto dto) {
-        this.dto = dto;
-    }
-
-    
-    
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/core/exceptions/InvalidProductQuantity.java">
-package com.nss.pibblest.modules.products.internal.core.exceptions;
-
-public class InvalidProductQuantity extends RuntimeException {
-
-    public InvalidProductQuantity(String message){
-        super(message);
-    }
-    
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/infrastructure/data/ProductTagId.java">
-package com.nss.pibblest.modules.products.internal.infrastructure.data;
-
-import java.io.Serializable;
-import java.util.Objects;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-
-@Embeddable
-public class ProductTagId implements Serializable {
-    
-
-    @Column(name="product_id")
-    private Long productId;
-
-    @Column(name="tag_id")
-    private Long tagId;
-
-    public ProductTagId(Long productId, Long tagId) {
-        this.productId = productId;
-        this.tagId = tagId;
-    }
-
-    public ProductTagId(){}
-
-    public Long getProductId() {
-        return productId;
-    }
-
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-
-    public Long getTagId() {
-        return tagId;
-    }
-
-    public void setTagId(Long tagId) {
-        this.tagId = tagId;
-    }
-
-    @Override
-    public boolean equals (Object o){
-        if (this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        ProductTagId that = (ProductTagId) o;
-        return Objects.equals(productId, that.productId) &&
-                Objects.equals(tagId,that.getTagId());
-
-
-    }
-
-    @Override
-    public int hashCode(){
-        return Objects.hash(productId, tagId);
-    }
-
-    
-
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/web/requests/createProduct/CreateProductRequest.java">
-package com.nss.pibblest.modules.products.internal.web.requests.createProduct;
-
-import java.math.BigDecimal;
-
-public class CreateProductRequest {
-      
-    private String name;
-    private String sku;
-    private String barcode;
-    private String description;
-    private String brand;
-    private BigDecimal basePrice;
-    private BigDecimal cost;
-    private Long quantity;
-    public CreateProductRequest(String name, String sku, String barcode, String description, String brand,
-            BigDecimal basePrice, BigDecimal cost, Long quantity) {
-        this.name = name;
-        this.sku = sku;
-        this.barcode = barcode;
-        this.description = description;
-        this.brand = brand;
-        this.basePrice = basePrice;
-        this.cost = cost;
-        this.quantity = quantity;
-    }
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getSku() {
-        return sku;
-    }
-    public void setSku(String sku) {
-        this.sku = sku;
-    }
-    public String getBarcode() {
-        return barcode;
-    }
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
-    }
-    public String getDescription() {
-        return description;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    public String getBrand() {
-        return brand;
-    }
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-    public BigDecimal getBasePrice() {
-        return basePrice;
-    }
-    public void setBasePrice(BigDecimal basePrice) {
-        this.basePrice = basePrice;
-    }
-    public BigDecimal getCost() {
-        return cost;
-    }
-    public void setCost(BigDecimal cost) {
-        this.cost = cost;
-    }
-    public Long getQuantity() {
-        return quantity;
-    }
-    public void setQuantity(Long quantity) {
-        this.quantity = quantity;
-    }
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/web/requests/createProduct/CreateProductResponse.java">
-package com.nss.pibblest.modules.products.internal.web.requests.createProduct;
-
-
-public class CreateProductResponse {
-    
-    private Long id;
-    private String message;
-    public CreateProductResponse(Long id, String message) {
-        this.id = id;
-        this.message = message;
-    }
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-    public String getMessage() {
-        return message;
-    }
-    public void setMessage(String message) {
-        this.message = message;
-    }
-    
-    
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/web/requests/getProductsFromStore/GetProductsFromStoreRequest.java">
-package com.nss.pibblest.modules.products.internal.web.requests.getProductsFromStore;
-
-public class GetProductsFromStoreRequest {
-
-    private Long storeId;
-
-    public Long getStoreId() {
-        return storeId;
-    }
-
-    public void setStoreId(Long storeId) {
-        this.storeId = storeId;
-    }
-    
-}
-</file>
 
 <file path="src/main/java/com/nss/pibblest/modules/products/internal/web/requests/getProductsFromStore/GetProductsFromStoreResponse.java">
 package com.nss.pibblest.modules.products.internal.web.requests.getProductsFromStore;
@@ -367,404 +114,12 @@ public class GetProductsFromStoreResponse {
 }
 </file>
 
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/infrastructure/data/ProductRespository.java">
-package com.nss.pibblest.modules.products.internal.infrastructure.data;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-@Repository
-public interface  ProductRespository extends JpaRepository<ProductEntity, Long>{
-    Page<ProductEntity> findByName(String keyword, Pageable pageable);
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/infrastructure/data/ProductTagEntity.java">
-package com.nss.pibblest.modules.products.internal.infrastructure.data;
-
-import com.nss.pibblest.modules.tags.internal.infrastructure.data.TagEntity;
-
-import jakarta.persistence.EmbeddedId;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name= "products_tags", indexes={
-    @Index(name="idx_tag_search", columnList="tag_id")
-})
-public class ProductTagEntity {
-    
-    @EmbeddedId
-    private ProductTagId id = new ProductTagId();
-
-    @ManyToOne(fetch=FetchType.LAZY)
-    @MapsId("productId")
-    @JoinColumn(name="product_id")
-    private ProductEntity product;
-
-    @ManyToOne(fetch=FetchType.LAZY)
-    @MapsId("tagId")
-    @JoinColumn(name="tag_id")
-    private TagEntity tag;
-
-    public ProductTagEntity() {
-    }
-
-    public ProductTagEntity(ProductEntity product, TagEntity tag) {
-        this.id = new ProductTagId(product.getId(), tag.getId());
-        this.product = product;
-        this.tag = tag;
-    }
-
-    public ProductTagId getId() {
-        return id;
-    }
-
-    public void setId(ProductTagId id) {
-        this.id = id;
-    }
-
-    public ProductEntity getProduct() {
-        return product;
-    }
-
-    public void setProduct(ProductEntity product) {
-        this.product = product;
-    }
-
-    public TagEntity getTag() {
-        return tag;
-    }
-
-    public void setTag(TagEntity tag) {
-        this.tag = tag;
-    }
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/mappers/ProductMapper.java">
-package com.nss.pibblest.modules.products.internal.mappers;
-
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-
-import com.nss.pibblest.modules.products.api.ProductPreviewDto;
-import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductEntity;
-import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductRequest;
-
-@Mapper(componentModel = "spring")
-public interface ProductMapper {
-    
-    @Mapping(target = "id", ignore = true)
-    //@Mapping(target = "tagId", ignore=true)
-    @Mapping(target= "createdAt", ignore=true)
-    @Mapping(target= "updatedAt", ignore=true)
-    ProductEntity toEntity(CreateProductRequest request);
-
-    ProductPreviewDto toPreviewDto(ProductEntity entity);
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/infrastructure/data/ProductEntity.java">
-package com.nss.pibblest.modules.products.internal.infrastructure.data;
-
-import java.math.BigDecimal;
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.hibernate.annotations.BatchSize;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import com.nss.pibblest.modules.tags.internal.infrastructure.data.products.TagProductEntity;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-
-@Entity
-@Table(name="products")
-public class ProductEntity {
-
-    @Id
-    @GeneratedValue(strategy=GenerationType.IDENTITY)
-    private Long id;
-
-
-    @Column(name="name",nullable=false, columnDefinition="TEXT")
-    private String name;
-
-    @Column(name="sku", nullable=false, columnDefinition="TEXT")
-    private String sku;
-
-    @Column(name="barcode", nullable=true, columnDefinition="TEXT")
-    private String barcode;
-
-    @Column(name="description", nullable=true, columnDefinition="TEXT")
-    private String description;
-
-    @Column(name="brand", nullable=true, columnDefinition="TEXT")
-    private String brand; 
-
-   // @ManyToOne(fetch=FetchType.LAZY)
-   // @JoinColumn(name="tag_id")
-   // private TagEntity tagId;
-
-
-    @Column(name="base_price", nullable=false, precision=12, scale=2)
-    private BigDecimal basePrice;
-
-    @Column(name="cost", nullable=false, precision=12, scale=2)
-    private BigDecimal cost;
-
-    @Column(nullable=false)
-    private Long quantity = 0L;
-
-
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
-    private ZonedDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at")
-    private ZonedDateTime updatedAt;
-
-    @OneToMany(mappedBy="productEntity")
-    @BatchSize(size=20)
-    private List<TagProductEntity> productTags = new ArrayList<>();
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSku() {
-        return sku;
-    }
-
-    public void setSku(String sku) {
-        this.sku = sku;
-    }
-
-    public String getBarcode() {
-        return barcode;
-    }
-
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getBrand() {
-        return brand;
-    }
-
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-
-    //public TagEntity getTagId() {
-    //    return tagId;
-    //}
-//
-    //public void setTagId(TagEntity tagId) {
-    //    this.tagId = tagId;
-    //}
-
-    public BigDecimal getBasePrice() {
-        return basePrice;
-    }
-
-    public void setBasePrice(BigDecimal basePrice) {
-        this.basePrice = basePrice;
-    }
-
-    public BigDecimal getCost() {
-        return cost;
-    }
-
-    public void setCost(BigDecimal cost) {
-        this.cost = cost;
-    }
-
-    public Long getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(Long quantity) {
-        this.quantity = quantity;
-    }
-
-    public ZonedDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(ZonedDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public ZonedDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(ZonedDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
-
-    public List<TagProductEntity> getProductTags() {
-        return productTags;
-    }
-
-
-
-    
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/api/ProductPreviewDto.java">
-package com.nss.pibblest.modules.products.api;
-
-import java.math.BigDecimal;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.nss.pibblest.modules.tags.api.dto.TagDto;
-
-public class ProductPreviewDto {
-    private Long id;
-    private String name;
-    private BigDecimal basePrice;
-    private BigDecimal cost;
-    private Long quantity;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Long desiredQuantity;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private Long currentQuantity;
-    private String sku;
-    private String barcode;
-    private String description;
-    private String brand;
-    private List<TagDto> tags;
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public BigDecimal getBasePrice() {
-        return basePrice;
-    }
-    public void setBasePrice(BigDecimal basePrice) {
-        this.basePrice = basePrice;
-    }
-    public Long getQuantity() {
-        return quantity;
-    }
-    public void setQuantity(Long quantity) {
-        this.quantity = quantity;
-    }
-    public BigDecimal getCost() {
-        return cost;
-    }
-    public void setCost(BigDecimal cost) {
-        this.cost = cost;
-    }
-    public String getSku() {
-        return sku;
-    }
-    public void setSku(String sku) {
-        this.sku = sku;
-    }
-    public String getBarcode() {
-        return barcode;
-    }
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
-    }
-    public String getDescription() {
-        return description;
-    }
-    public void setDescription(String description) {
-        this.description = description;
-    }
-    public String getBrand() {
-        return brand;
-    }
-    public void setBrand(String brand) {
-        this.brand = brand;
-    }
-    
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public List<TagDto> getTags() {
-        return tags;
-    }
-
-    public void setTags(List<TagDto> tags) {
-        this.tags = tags;
-    }
-
-    public Long getDesiredQuantity() {
-        return desiredQuantity;
-    }
-
-    public void setDesiredQuantity(Long desiredQuantity) {
-        this.desiredQuantity = desiredQuantity;
-    }
-
-    public Long getCurrentQuantity() {
-        return currentQuantity;
-    }
-
-    public void setCurrentQuantity(Long currentQuantity) {
-        this.currentQuantity = currentQuantity;
-    }
-
-    
-}
-</file>
-
 <file path="src/main/java/com/nss/pibblest/modules/products/internal/web/ProductController.java">
 package com.nss.pibblest.modules.products.internal.web;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -774,14 +129,16 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.nss.pibblest.modules.products.api.ProductPreviewDto;
 import com.nss.pibblest.modules.products.internal.core.ProductService;
 import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductRequest;
 import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductResponse;
+import com.nss.pibblest.modules.products.internal.web.requests.deleteProduct.DeleteProductResponse;
 import com.nss.pibblest.modules.products.internal.web.requests.getProductsFromStore.GetProductsFromStoreResponse;
+import com.nss.pibblest.modules.products.internal.web.requests.updateProduct.UpdateProductRequest;
 import com.nss.pibblest.modules.products.internal.web.requests.updateProduct.UpdateProductResponse;
 
 import jakarta.validation.Valid;
-
 
 @RestController
 @RequestMapping("/api/products")
@@ -794,132 +151,41 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<CreateProductResponse> createProduct( @Valid @RequestBody CreateProductRequest request){
+    public ResponseEntity<CreateProductResponse> createProduct(@Valid @RequestBody CreateProductRequest request){
         return this.productService.createProduct(request);
     }
 
     @GetMapping("/{storeId}")
-    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStorePreview (@PathVariable("storeId")  Long storeId, 
-    @RequestParam(required=false) String keyword ,Pageable pageable){
-        return productService.getProductsFromStore(storeId, keyword,pageable);
+    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStorePreview(
+            @PathVariable("storeId") Long storeId, 
+            @RequestParam(required=false) String keyword, 
+            Pageable pageable){
+        return productService.getProductsFromStore(storeId, keyword, pageable);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<GetProductsFromStoreResponse> getAll(@RequestParam(required = false) String keyword, Pageable pageable){
+    public ResponseEntity<GetProductsFromStoreResponse> getAll(
+            @RequestParam(required = false) String keyword, 
+            Pageable pageable){
         return productService.getAllProducts(keyword, pageable);
-        
+    }
+
+    @GetMapping("/detail/{id}")
+    public ResponseEntity<ProductPreviewDto> getProductById(@PathVariable("id") Long id) {
+        return productService.getProductById(id);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UpdateProductResponse> editProduct(@PathVariable String id) {
-        //TODO: process PUT request
-        
-    
-    }
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/products/internal/core/ProductService.java">
-package com.nss.pibblest.modules.products.internal.core;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
-import com.nss.pibblest.modules.products.api.ProductPreviewDto;
-import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductEntity;
-import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductRespository;
-import com.nss.pibblest.modules.products.internal.mappers.ProductMapper;
-import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductRequest;
-import com.nss.pibblest.modules.products.internal.web.requests.createProduct.CreateProductResponse;
-import com.nss.pibblest.modules.products.internal.web.requests.getProductsFromStore.GetProductsFromStoreResponse;
-import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductEntity;
-import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductRepository;
-import com.nss.pibblest.modules.tags.api.dto.TagDto;
-import com.nss.pibblest.modules.tags.internal.mappers.TagMapper;
-
-import jakarta.transaction.Transactional;
-
-@Service
-public class ProductService {
-    private final ProductRespository productRespository;
-    private final StoreProductRepository storeProductRepository;
-
-    private final ProductMapper productMapper;
-    private final TagMapper tagMapper;
-
-    public ProductService(ProductRespository productRespository, StoreProductRepository storeProductRepository,
-            ProductMapper productMapper, TagMapper tagMapper) {
-        this.productRespository = productRespository;
-        this.storeProductRepository = storeProductRepository;
-        this.productMapper = productMapper;
-        this.tagMapper = tagMapper;
+    public ResponseEntity<UpdateProductResponse> editProduct(
+            @PathVariable("id") Long id,
+            @Valid @RequestBody UpdateProductRequest request) {
+        return productService.editProduct(id, request);
     }
 
-    @Transactional
-    public ResponseEntity<CreateProductResponse> createProduct(CreateProductRequest request) {
-
-        ProductEntity productRequest = productMapper.toEntity(request);
-        ProductEntity newProduct = productRespository.save(productRequest);
-
-        CreateProductResponse response = new CreateProductResponse(newProduct.getId(), "Su producto fue registrado");
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<DeleteProductResponse> deleteProduct(@PathVariable("id") Long id) {
+        return productService.deleteProduct(id);
     }
-
-    public ResponseEntity<GetProductsFromStoreResponse> getProductsFromStore(Long storeId, String keyword,
-            Pageable pageable) {
-        Page<StoreProductEntity> storeProductEntities;
-        if (keyword == null || keyword.trim().isEmpty()) {
-            storeProductEntities = storeProductRepository.findByStoreIdAndIsActiveTrue(storeId, pageable);
-        } else {
-            storeProductEntities = storeProductRepository
-                    .findByStoreIdAndProduct_NameContainingIgnoreCaseAndIsActiveTrue(storeId, keyword, pageable);
-        }
-
-        Page<ProductPreviewDto> productEntitys = storeProductEntities.map(spe -> {
-            ProductEntity product = spe.getProduct();
-
-            ProductPreviewDto dto = productMapper.toPreviewDto(product);
-            dto.setCurrentQuantity(spe.getCurrentQuantity());
-            dto.setDesiredQuantity(spe.getDesiredQuantity());
-
-            if (product.getProductTags() != null) {
-                List<TagDto> tags = product.getProductTags().stream()
-                        .map(tagProduct -> tagMapper.fromTagForProductToDto(tagProduct.getTagForProductsEntity()))
-                        .collect(Collectors.toList());
-                dto.setTags(tags);
-            }
-
-            return dto;
-        });
-        GetProductsFromStoreResponse response = new GetProductsFromStoreResponse(productEntitys);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-    }
-
-    public ResponseEntity<GetProductsFromStoreResponse> getAllProducts(String keyword, Pageable pageable) {
-        Page<ProductEntity> products;
-        if (keyword == null || keyword.trim().isEmpty()) {
-            products = productRespository.findAll(pageable);
-        } else {
-
-            products = productRespository.findByName(keyword, pageable);
-        }
-
-        Page<ProductPreviewDto> productsDto = products.map(p -> productMapper.toPreviewDto(p));
-
-        GetProductsFromStoreResponse response = new GetProductsFromStoreResponse(productsDto);
-
-        return ResponseEntity.status(HttpStatus.OK).body(response);
-
-    }
-
-    
 }
 </file>
 
