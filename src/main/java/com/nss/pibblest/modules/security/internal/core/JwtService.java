@@ -2,14 +2,20 @@ package com.nss.pibblest.modules.security.internal.core;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import com.nss.pibblest.shared.enums.Permission;
+import com.nss.pibblest.shared.enums.Role;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -22,11 +28,10 @@ public class JwtService {
     @Value("${security.jwt.secret-key}")
     private String secretKey;
 
-
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
 
-    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner){
+    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions){
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("employeeId", employeeId);
@@ -36,6 +41,8 @@ public class JwtService {
             extraClaims.put("owner", schema_name);
         }
         extraClaims.put("isOwner", isOwner);
+        extraClaims.put("role", role.name());
+        extraClaims.put("permissions", permissions.stream().map(Permission::name).collect(Collectors.toList()));
 
         String tokenId = UUID.randomUUID().toString();
 
@@ -47,7 +54,6 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
-
     }
 
     public String extractUsername(String token){
@@ -65,13 +71,22 @@ public class JwtService {
     public boolean extractIsOwner(String token){
         return extractAllClaims(token).get("isOwner", boolean.class);
     }
+    
     public String extractUserId(String token){
         return extractAllClaims(token).get("employeeId", String.class);
     }
 
+    public String extractRole(String token) {
+        return extractAllClaims(token).get("role", String.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> extractPermissions(String token) {
+        return extractAllClaims(token).get("permissions", List.class);
+    }
+
     public boolean isTokenValid(String token, String username){
         final String extractedUsername = extractUsername(token);
-
         return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 
@@ -100,5 +115,4 @@ public class JwtService {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
-
 }

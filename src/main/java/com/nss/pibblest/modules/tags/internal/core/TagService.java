@@ -38,7 +38,10 @@ import com.nss.pibblest.modules.tags.internal.web.requests.getAllTags.GetAllTags
 import com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToProduct.AssignTagToProductRequest;
 import com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToProduct.AssignTagToProductResponse;
 import com.nss.pibblest.modules.tags.internal.web.requests.products.createTagForProduct.CreateTagForProductRequest;
+import com.nss.pibblest.modules.tags.api.dto.TagForProductDto;
 import com.nss.pibblest.modules.tags.internal.web.requests.products.createTagForProduct.CreateTagForProductResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.getAllTagsList.GetAllStoreTagsListResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.getAllProductTagsList.GetAllProductTagsListResponse;
 import com.nss.pibblest.modules.tags.internal.web.requests.products.getAllTagsForProducts.GetAllTagsForProductsResponse;
 import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
 
@@ -216,6 +219,30 @@ public class TagService {
 
         Page<TagDto> dtoPage = tagForProductsPage.map(tagMapper::fromTagForProductToDto);
         GetAllTagsForProductsResponse response = new GetAllTagsForProductsResponse(dtoPage);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    public ResponseEntity<GetAllProductTagsListResponse> getAllProductTagsList() {
+        List<TagForProductsEntity> entities = tagForProductsRepository.findAll();
+        
+        List<TagForProductDto> dtos = entities.stream()
+                .map(tagMapper::toTagForProductDto)
+                .toList();
+                
+        GetAllProductTagsListResponse response = new GetAllProductTagsListResponse(dtos);
+        
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    public ResponseEntity<GetAllStoreTagsListResponse> getAllStoreTagsList() {
+        List<TagEntity> entities = tagRepository.findAll();
+        
+        List<TagDto> dtos = entities.stream()
+                .map(tagMapper::toDto)
+                .toList();
+                
+        GetAllStoreTagsListResponse response = new GetAllStoreTagsListResponse(dtos);
+        
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 

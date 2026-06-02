@@ -1,11 +1,13 @@
 package com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore;
 
+import java.util.Set;
 import com.nss.pibblest.shared.enums.StoreStatus;
 
 public class CreateStoreRequest {
     private String name;
     private String address;
     private StoreStatus status = StoreStatus.ACTIVE;
+    private Set<Long> tagsId;
 
     public StoreStatus getStatus() {
         return status;
@@ -30,5 +32,12 @@ public class CreateStoreRequest {
     public void setName(String name) {
         this.name = name;
     }
-    
+
+    public Set<Long> getTagsId() {
+        return tagsId;
+    }
+
+    public void setTagsId(Set<Long> tagsId) {
+        this.tagsId = tagsId;
+    }
 }

@@ -1,15 +1,21 @@
 package com.nss.pibblest.modules.stores.internal.infrastructure.data;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.nss.pibblest.modules.tags.internal.infrastructure.data.StoreTagEntity;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -33,13 +39,15 @@ public class StoreEntity {
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;
 
-    
     @UpdateTimestamp
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
     
     @Column(name="deleted_at")
     private ZonedDateTime deletedAt;
+
+    @OneToMany(mappedBy="storeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StoreTagEntity> storeTags = new ArrayList<>();
 
     public ZonedDateTime getDeletedAt() {
         return deletedAt;
@@ -97,5 +105,11 @@ public class StoreEntity {
         this.id = id;
     }
 
+    public List<StoreTagEntity> getStoreTags() {
+        return storeTags;
+    }
 
+    public void setStoreTags(List<StoreTagEntity> storeTags) {
+        this.storeTags = storeTags;
+    }
 }

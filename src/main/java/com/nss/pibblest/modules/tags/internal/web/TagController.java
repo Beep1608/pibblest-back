@@ -18,6 +18,8 @@ import com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToP
 import com.nss.pibblest.modules.tags.internal.web.requests.products.assignTagToProduct.AssignTagToProductResponse;
 import com.nss.pibblest.modules.tags.internal.web.requests.products.createTagForProduct.CreateTagForProductRequest;
 import com.nss.pibblest.modules.tags.internal.web.requests.products.createTagForProduct.CreateTagForProductResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.getAllTagsList.GetAllStoreTagsListResponse;
+import com.nss.pibblest.modules.tags.internal.web.requests.products.getAllProductTagsList.GetAllProductTagsListResponse;
 import com.nss.pibblest.modules.tags.internal.web.requests.products.getAllTagsForProducts.GetAllTagsForProductsResponse;
 
 import jakarta.validation.Valid;
@@ -66,5 +68,15 @@ public class TagController {
     public ResponseEntity<GetAllTagsForProductsResponse> getAllTagsForProducts(String keyword, Pageable pageable){
         return  tagService.getAllTagsForProducts(keyword, pageable);
     } 
+
+    @GetMapping("/products/list")
+    public ResponseEntity<GetAllProductTagsListResponse> getAllProductTagsList() {
+        return tagService.getAllProductTagsList();
+    }
+
+    @GetMapping("/stores/list")
+    public ResponseEntity<GetAllStoreTagsListResponse> getAllStoreTagsList() {
+        return tagService.getAllStoreTagsList();
+    }
 
 }

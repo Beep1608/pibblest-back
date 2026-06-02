@@ -11,6 +11,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import com.nss.pibblest.modules.tags.internal.infrastructure.data.products.TagProductEntity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -27,7 +28,6 @@ public class ProductEntity {
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private Long id;
 
-
     @Column(name="name",nullable=false, columnDefinition="TEXT")
     private String name;
 
@@ -43,11 +43,6 @@ public class ProductEntity {
     @Column(name="brand", nullable=true, columnDefinition="TEXT")
     private String brand; 
 
-   // @ManyToOne(fetch=FetchType.LAZY)
-   // @JoinColumn(name="tag_id")
-   // private TagEntity tagId;
-
-
     @Column(name="base_price", nullable=false, precision=12, scale=2)
     private BigDecimal basePrice;
 
@@ -57,7 +52,6 @@ public class ProductEntity {
     @Column(nullable=false)
     private Long quantity = 0L;
 
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;
@@ -66,7 +60,7 @@ public class ProductEntity {
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
-    @OneToMany(mappedBy="productEntity")
+    @OneToMany(mappedBy="productEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size=20)
     private List<TagProductEntity> productTags = new ArrayList<>();
 
@@ -118,14 +112,6 @@ public class ProductEntity {
         this.brand = brand;
     }
 
-    //public TagEntity getTagId() {
-    //    return tagId;
-    //}
-//
-    //public void setTagId(TagEntity tagId) {
-    //    this.tagId = tagId;
-    //}
-
     public BigDecimal getBasePrice() {
         return basePrice;
     }
@@ -169,8 +155,4 @@ public class ProductEntity {
     public List<TagProductEntity> getProductTags() {
         return productTags;
     }
-
-
-
-    
 }

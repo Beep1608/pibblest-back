@@ -1,6 +1,30 @@
 package com.nss.pibblest.modules.tags.api.dto;
 
 public class TagForProductDto {
-   private String name; 
+    private String name; 
     private Long id;
+
+    public TagForProductDto() {
+    }
+
+    public TagForProductDto(String name, Long id) {
+        this.name = name;
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 }

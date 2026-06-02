@@ -2,7 +2,7 @@ TAREA DE ANÁLISIS Y DIAGNÓSTICO BÁSICO (FASE 1)
 
 A continuación, te proporcionaré el código del módulo de [Nombre del módulo, ej. Registro de Owner]. 
 
-Tu objetivo es revisar este código específicamente buscando: [Indicar objetivo, ej. vulnerabilidades de seguridad, validaciones de negocio faltantes, o posibles NullPointerExceptions].
+Tu objetivo es revisar este código específicamente buscando o implementando: [Indicar objetivo, ej. vulnerabilidades de seguridad, validaciones de negocio faltantes, o posibles NullPointerExceptions].
 
 REGLAS DE EJECUCIÓN PARA ESTA FASE:
 1. NO GENERES CÓDIGO: Bajo ninguna circunstancia debes devolver clases refactorizadas, métodos modificados o fragmentos de código listos para ser implementados. 

@@ -18,8 +18,10 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import com.nss.pibblest.modules.security.internal.web.filters.JwtAuthenticationFilter;
 import com.nss.pibblest.modules.tenant.filters.TenantFilter;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
     
     private final JwtAuthenticationFilter jwtAuthFilter; 

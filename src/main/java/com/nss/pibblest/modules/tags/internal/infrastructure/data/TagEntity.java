@@ -46,5 +46,13 @@ public class TagEntity {
         this.id = id;
     }
 
+    public void setDeletedAt(ZonedDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public ZonedDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
 
 }

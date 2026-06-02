@@ -2,6 +2,7 @@ package com.nss.pibblest.modules.stores.internal.web;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,12 +17,13 @@ import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asign
 import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore.DeleteStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
 
 import jakarta.validation.Valid;
-//TODO: Revisar le manejo de responses correctamente para este modulo
+
 @RestController
 @RequestMapping("/api/stores")
 public class StoreController {
@@ -49,12 +51,13 @@ public class StoreController {
         return storeService.updateStore(id,request);
     }
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<DeleteStoreResponse> deleteStore(@PathVariable("id") Long id) {
+        return storeService.deleteStore(id);
+    }
+
     @PostMapping("/assign")
     public ResponseEntity<AsignStoreProductToStoreResponse> assignProduct (@Valid @RequestBody AsignStoreProductToStoreRequest request){
-
         return this.storeProductService.assignProductToStore(request);
     }
-    
-
 }
- 

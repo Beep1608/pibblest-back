@@ -102,7 +102,8 @@ public class OwnerService {
                 ownerCreated.getId(),
                 ownerCreated.getCompany(),
                 ownerCreated.getEmail(),
-                ownerCreated.getSchemaName()));
+                ownerCreated.getSchemaName(),
+                ownerCreated.getPassword()));
 
         String token = jwtService.generateToken(ownerCreated.getId(), ownerCreated.getName(), ownerCreated.getSchemaName(), false);
         String message = messageSource.getMessage("response.created.owner", null, LocaleContextHolder.getLocale());

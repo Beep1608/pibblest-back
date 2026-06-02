@@ -1,9 +1,11 @@
 package com.nss.pibblest.modules.security.internal.web.filters;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -21,7 +23,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
 
 @Component
-//TODO: Creo que este filtro se aplicá dos veces
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     
     private final JwtService jwtService;
@@ -43,12 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String jwt = null;
         final String userEmail;
 
-
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            // Caso A: Petición REST clásica desde Angular
             jwt = authHeader.substring(7);
         } else if (request.getRequestURI().contains("/api/stores/stream/storePreview")) {
-            // Caso B: Petición SSE nativa (el token viene en ?token=...)
             jwt = request.getParameter("token");
         }
 
@@ -57,48 +55,50 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        
-
         try {
-
             userEmail = jwtService.extractUsername(jwt);
             String owner = jwtService.extractOwner(jwt);
-            boolean isValid = jwtService.isTokenValid(jwt, userEmail);
             String userId = jwtService.extractUserId(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
                 boolean isTokenActive = sessionTrackerService.isSessionValid(userId, jwtService.extractTokenId(jwt));
   
-
                 if(jwtService.isTokenValid(jwt, userEmail) && isTokenActive){
 
                     if (owner != null ){
                         TenantContext.setCurrentTenant(owner);
                     }
 
-                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(userId, 
+                    String role = jwtService.extractRole(jwt);
+                    List<String> permissions = jwtService.extractPermissions(jwt);
+
+                    List<GrantedAuthority> authorities = new ArrayList<>();
+                    if (role != null && !role.isBlank()) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+                    }
+                    if (permissions != null) {
+                        permissions.forEach(p -> authorities.add(new SimpleGrantedAuthority(p)));
+                    }
+
+                    UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
+                        userId, 
                         null,
-                        Collections.singletonList(new SimpleGrantedAuthority("miau"))
+                        authorities
                     );
 
-                    System.out.println("Siii");
                     authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
                 }
             }
-            System.out.println("No fue validado");
             
         } catch (Exception e) {
             System.err.println("Error procesando JWT: " + e.getMessage());
-        }finally{
-
+        } finally {
             try{
                 filterChain.doFilter(request, response);
-            }finally{
+            } finally {
                 TenantContext.clear();
             }
         }
-      
     }
 }

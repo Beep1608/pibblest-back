@@ -1,6 +1,7 @@
 package com.nss.pibblest.modules.employees.internal.web;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,19 +27,15 @@ public class EmployeeController {
         this.employeeStoreService = employeeStoreService;
     }
 
-
     @PostMapping()
+    @PreAuthorize("hasRole('OWNER') or hasAuthority('CAN_CREATE')")
     public ResponseEntity<CreateEmployeeResponse> createEmployee(@Valid @RequestBody CreateEmployeeRequest request){
         return employeeService.createEmployee(request);
     }
 
-
-
-
-
-
     @PostMapping("/assign")
-        public ResponseEntity<AssignEmployeeToStoreResponse> assignEmployeeToStore(
+    @PreAuthorize("hasRole('OWNER') or hasAuthority('CAN_EDIT')")
+    public ResponseEntity<AssignEmployeeToStoreResponse> assignEmployeeToStore(
            @Valid @RequestBody AssignEmployeeToStoreRequest request) {
             return this.employeeStoreService.assignEmployeeToStore(request);
     }
