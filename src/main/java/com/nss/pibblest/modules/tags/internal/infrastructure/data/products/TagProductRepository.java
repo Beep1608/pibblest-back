@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface  TagProductRepository extends JpaRepository<TagProductEntity, TagProductEmbedded> {
+public interface TagProductRepository extends JpaRepository<TagProductEntity, Long> {
     
 }

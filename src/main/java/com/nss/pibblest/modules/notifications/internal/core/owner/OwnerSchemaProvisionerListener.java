@@ -6,12 +6,13 @@ import javax.sql.DataSource;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 
 import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
+import com.nss.pibblest.modules.owners.api.events.TenantSchemaReadyEvent;
 
 import liquibase.Liquibase;
 import liquibase.database.Database;
@@ -26,11 +27,12 @@ public class OwnerSchemaProvisionerListener {
 
     private final JdbcTemplate jdbcTemplate;
     private final DataSource dataSource;
+    private final ApplicationEventPublisher events;
 
-    public OwnerSchemaProvisionerListener(JdbcTemplate jdbcTemplate, DataSource dataSource) {
+    public OwnerSchemaProvisionerListener(JdbcTemplate jdbcTemplate, DataSource dataSource, ApplicationEventPublisher events) {
         this.jdbcTemplate = jdbcTemplate;
         this.dataSource = dataSource;
-
+        this.events = events;
     }
 
     @KafkaListener(topics = "owners-registered-topic", groupId = "provisioning-group")
@@ -47,6 +49,15 @@ public class OwnerSchemaProvisionerListener {
             log.info("✅ Esquema '{}' creado exitosamente.", schemaName);
 
             runLiquibaseMigrations(schemaName);
+
+            // ¡Saga completada! Disparamos el evento para que el módulo de empleados sincronice al Owner
+            events.publishEvent(new TenantSchemaReadyEvent(
+                event.schemaName(),
+                event.email(),
+                event.encodedPassword(),
+                event.name(),
+                event.lastName()
+            ));
 
             log.info("🚀 Aprovisionamiento completado con éxito para '{}'.", schemaName);
 

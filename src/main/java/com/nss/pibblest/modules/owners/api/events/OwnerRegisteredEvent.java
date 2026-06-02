@@ -7,6 +7,8 @@ import org.springframework.modulith.events.Externalized;
 public record OwnerRegisteredEvent (
    UUID id,
    String company,
+   String name,
+   String lastName,
    String email,
    String schemaName,
    String encodedPassword

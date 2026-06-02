@@ -104,6 +104,8 @@ public class OwnerService {
         events.publishEvent(new OwnerRegisteredEvent(
                 ownerCreated.getId(),
                 ownerCreated.getCompany(),
+                ownerCreated.getName(),
+                ownerCreated.getLastName(),
                 ownerCreated.getEmail(),
                 ownerCreated.getSchemaName(),
                 ownerCreated.getPassword()));

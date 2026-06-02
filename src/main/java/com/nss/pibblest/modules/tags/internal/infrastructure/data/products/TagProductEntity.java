@@ -2,30 +2,33 @@ package com.nss.pibblest.modules.tags.internal.infrastructure.data.products;
 
 import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductEntity;
 
-import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name="products_tags")
+@Table(name="products_tags", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"product_id", "tag_id"})
+})
 public class TagProductEntity {
     
-    @EmbeddedId
-    private TagProductEmbedded id =new TagProductEmbedded();
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @ManyToOne(fetch=FetchType.LAZY)
-    @MapsId("productId")
-    @JoinColumn(name="product_id")
+    @JoinColumn(name="product_id", nullable=false)
     private ProductEntity productEntity;
 
     @ManyToOne(fetch=FetchType.LAZY)
-    @MapsId("tagId")
-    @JoinColumn(name="tag_id")
+    @JoinColumn(name="tag_id", nullable=false)
     private TagForProductsEntity tagForProductsEntity;
 
     public TagProductEntity() {
@@ -36,11 +39,11 @@ public class TagProductEntity {
         this.tagForProductsEntity = tagForProductsEntity;
     }
 
-    public TagProductEmbedded getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(TagProductEmbedded id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
