@@ -18,3 +18,7 @@ Para cada hallazgo, utiliza la siguiente estructura:
 Aquí está el código a analizar:
 
 [PEGAR CÓDIGO DEL MÓDULO AQUÍ]
+
+
+implementa el codigo que te pasare, olvidate de los test y la compilacion, si hay traducciones realizalas en los dos
+  archivos de idiomas
