@@ -16,6 +16,7 @@ public class CurrentTenantResolver implements CurrentTenantIdentifierResolver<St
         if (currentTenant == null || currentTenant.trim().isEmpty()) {
             return "identity"; 
         }
+        System.out.println("CurrentTenantResolver: "+currentTenant);
         return currentTenant;
     }
 

@@ -1,0 +1,482 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/main/java/com/nss/pibblest/modules/notifications/**/*.java
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/main/java/com/nss/pibblest/modules/notifications/internal/core/owner/EmailListener.java
+src/main/java/com/nss/pibblest/modules/notifications/internal/core/owner/OwnerSchemaProvisionerListener.java
+src/main/java/com/nss/pibblest/modules/notifications/internal/core/store/StoreNotificationHelper.java
+src/main/java/com/nss/pibblest/modules/notifications/internal/web/EventManagementController.java
+src/main/java/com/nss/pibblest/modules/notifications/internal/web/requests/retryIncompleteEventsPublications/RetryIncompleteEventPublicationsRequest.java
+src/main/java/com/nss/pibblest/modules/notifications/internal/web/requests/retryIncompleteEventsPublications/RetryIncompleteEventPublicationsResponse.java
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/main/java/com/nss/pibblest/modules/notifications/internal/web/EventManagementController.java">
+package com.nss.pibblest.modules.notifications.internal.web;
+
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.modulith.events.IncompleteEventPublications;
+import org.springframework.modulith.events.core.EventPublicationRegistry;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.nss.pibblest.modules.notifications.internal.web.requests.retryIncompleteEventsPublications.RetryIncompleteEventPublicationsRequest;
+import com.nss.pibblest.modules.notifications.internal.web.requests.retryIncompleteEventsPublications.RetryIncompleteEventPublicationsResponse;
+
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/events")
+public class EventManagementController {
+
+    private final IncompleteEventPublications incompleteEventsPublications;
+    private final EventPublicationRegistry registry;
+
+    public EventManagementController(IncompleteEventPublications incompleteEventPublications, EventPublicationRegistry registry){
+        this.incompleteEventsPublications = incompleteEventPublications;
+        this.registry = registry;
+    }   
+    
+    @PostMapping("/retry-incomplete")
+    public ResponseEntity<RetryIncompleteEventPublicationsResponse> retryIncomplete(@Valid @RequestBody RetryIncompleteEventPublicationsRequest request){
+
+        UUID id = UUID.fromString( request.getEventId());
+        registry.findIncompletePublications().stream()
+        .filter(pub -> pub.getIdentifier().equals( id))
+        .findFirst()
+        .ifPresent(pub ->{
+            incompleteEventsPublications.resubmitIncompletePublications(p -> p.getIdentifier().equals(id)); 
+        });
+
+       RetryIncompleteEventPublicationsResponse response = new RetryIncompleteEventPublicationsResponse("Se proceso de nuevo el evento con id : "+ request.getEventId());
+
+       return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/notifications/internal/web/requests/retryIncompleteEventsPublications/RetryIncompleteEventPublicationsRequest.java">
+package com.nss.pibblest.modules.notifications.internal.web.requests.retryIncompleteEventsPublications;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+import jakarta.validation.constraints.NotNull;
+
+public class RetryIncompleteEventPublicationsRequest {
+
+    @NotNull(message="El eventId no puede ser nulo")
+    @JsonProperty("eventId")
+    private String eventId;
+
+    public RetryIncompleteEventPublicationsRequest(){}
+
+    public RetryIncompleteEventPublicationsRequest(String eventId){
+        this.eventId = eventId;
+    }
+
+    public String getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(String eventId) {
+        this.eventId = eventId;
+    }
+
+
+    
+    
+    
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/notifications/internal/web/requests/retryIncompleteEventsPublications/RetryIncompleteEventPublicationsResponse.java">
+package com.nss.pibblest.modules.notifications.internal.web.requests.retryIncompleteEventsPublications;
+
+public class RetryIncompleteEventPublicationsResponse {
+
+    private String message;
+
+    public RetryIncompleteEventPublicationsResponse(String message){
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/notifications/internal/core/owner/OwnerSchemaProvisionerListener.java">
+package com.nss.pibblest.modules.notifications.internal.core.owner;
+
+import java.sql.Connection;
+
+import javax.sql.DataSource;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.stereotype.Component;
+
+import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
+import com.nss.pibblest.modules.owners.api.events.TenantSchemaReadyEvent;
+
+import liquibase.Liquibase;
+import liquibase.database.Database;
+import liquibase.database.DatabaseFactory;
+import liquibase.database.jvm.JdbcConnection;
+import liquibase.resource.ClassLoaderResourceAccessor;
+
+@Component
+public class OwnerSchemaProvisionerListener {
+
+    private final Logger log = LoggerFactory.getLogger(OwnerSchemaProvisionerListener.class);
+
+    private final JdbcTemplate jdbcTemplate;
+    private final DataSource dataSource;
+    private final ApplicationEventPublisher events;
+
+    public OwnerSchemaProvisionerListener(JdbcTemplate jdbcTemplate, DataSource dataSource, ApplicationEventPublisher events) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.dataSource = dataSource;
+        this.events = events;
+    }
+
+    @KafkaListener(topics = "owners-registered-topic", groupId = "provisioning-group")
+    public void provisionNewOwnerDb(OwnerRegisteredEvent event) {
+        String schemaName = event.schemaName();
+
+        log.info("⚙️ Iniciando aprovisionamiento para el Owner: {} en el esquema: {}", event.company(), schemaName);
+
+        try {
+
+            String createSchemaSql = String.format("CREATE SCHEMA IF NOT EXISTS \"%s\"", schemaName);
+
+            jdbcTemplate.execute(createSchemaSql);
+            log.info("✅ Esquema '{}' creado exitosamente.", schemaName);
+
+            runLiquibaseMigrations(schemaName);
+
+            // ¡Saga completada! Disparamos el evento para que el módulo de empleados sincronice al Owner
+            events.publishEvent(new TenantSchemaReadyEvent(
+                event.schemaName(),
+                event.email(),
+                event.encodedPassword(),
+                event.name(),
+                event.lastName()
+            ));
+
+            log.info("🚀 Aprovisionamiento completado con éxito para '{}'.", schemaName);
+
+        } catch (Exception e) {
+            log.error("❌ Error crítico aprovisionando el esquema para el Owner {}: {}", event.company(), e.getMessage(),
+                    e);
+
+            throw new RuntimeException("Fallo en la provisión del inquilino", e);
+        }
+    }
+
+    private void runLiquibaseMigrations(String schemaName) throws Exception {
+
+        try (Connection connection = dataSource.getConnection()) {
+            Database database = DatabaseFactory.getInstance()
+                    .findCorrectDatabaseImplementation(new JdbcConnection(connection));
+            database.setDefaultSchemaName(schemaName);
+            database.setLiquibaseSchemaName(schemaName);
+            String changelogFile = "changelog/owners/owner-changelog.yml";
+            Liquibase liquibase = new Liquibase(
+                    changelogFile,
+                    new ClassLoaderResourceAccessor(getClass().getClassLoader()),
+                    database);
+            liquibase.update("");
+            log.info("✅ Tablas creadas mediante Liquibase en el esquema '{}'.", schemaName);
+        }
+
+    }
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/notifications/internal/core/store/StoreNotificationHelper.java">
+package com.nss.pibblest.modules.notifications.internal.core.store;
+
+import java.time.Duration;
+import java.time.Period;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.Locale;
+
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
+import com.nss.pibblest.modules.stores.internal.core.StoreSseService;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
+import com.nss.pibblest.modules.tenant.SessionTrackerService;
+
+@Service
+public class StoreNotificationHelper {
+
+    private final StoreRepository storeRepository;
+    private final StoreSseService storeSseService;
+    private final KafkaTemplate<Object, Object> kafkaTemplate;
+    private final SessionTrackerService sessionTrackerService;
+    private final MessageSource messageSource;
+
+    public StoreNotificationHelper(StoreRepository storeRepository, StoreSseService storeSseService,
+            KafkaTemplate<Object, Object> kafkaTemplate, SessionTrackerService sessionTrackerService,
+            MessageSource messageSource) {
+        this.storeRepository = storeRepository;
+        this.storeSseService = storeSseService;
+        this.kafkaTemplate = kafkaTemplate;
+        this.sessionTrackerService = sessionTrackerService;
+        this.messageSource = messageSource;
+    }
+
+    public void notifyStoreChange(Long storeId, String userId) {
+        if (!sessionTrackerService.isUserOnline(userId)) {
+            return;
+        }
+        ZonedDateTime startOfDay = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
+
+        storeRepository.findStorePreviewById(storeId, startOfDay)
+                .ifPresent(freshDto -> {
+                    String localizedTime = getLocalizedOperatingTime(freshDto.getCreatedAt(),
+                            LocaleContextHolder.getLocale());
+                    freshDto.setOperatinTime(localizedTime);
+
+                    ProducerRecord<Object, Object> record = new ProducerRecord<>(
+                            "store-realtime-updates", // Tópico
+                            String.valueOf(freshDto.getId()), // Key (ID de la tienda)
+                            freshDto);
+                    record.headers().add("userId", userId.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    kafkaTemplate.send(record);
+                    //storeSseService.broadcastStoreUpdate(token, freshDto);
+
+                });
+    }
+
+    private String getLocalizedOperatingTime(ZonedDateTime createdAt, Locale locale) {
+        if (createdAt == null) {
+            return messageSource.getMessage("time.unknown", null, locale);
+        }
+
+        ZonedDateTime now = ZonedDateTime.now();
+        Period period = Period.between(createdAt.toLocalDate(), now.toLocalDate());
+
+        int years = period.getYears();
+        int months = period.getMonths();
+        int days = period.getDays();
+
+        // Evaluamos Años
+        if (years > 0) {
+            String key = years == 1 ? "time.years.one" : "time.years.many";
+            return messageSource.getMessage(key, new Object[] { years }, locale);
+        }
+        // Evaluamos Meses
+        if (months > 0) {
+            String key = months == 1 ? "time.months.one" : "time.months.many";
+            return messageSource.getMessage(key, new Object[] { months }, locale);
+        }
+        // Evaluamos Días
+        if (days > 0) {
+            String key = days == 1 ? "time.days.one" : "time.days.many";
+            return messageSource.getMessage(key, new Object[] { days }, locale);
+        }
+
+        // Evaluamos Horas si se creó hoy
+        long hours = Duration.between(createdAt, now).toHours();
+        if (hours > 0) {
+            String key = hours == 1 ? "time.hours.one" : "time.hours.many";
+            return messageSource.getMessage(key, new Object[] { hours }, locale);
+        }
+
+        // Menos de una hora
+        return messageSource.getMessage("time.less.than.hour", null, locale);
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/notifications/internal/core/owner/EmailListener.java">
+package com.nss.pibblest.modules.notifications.internal.core.owner;
+
+import java.util.Locale;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.security.authentication.ott.GenerateOneTimeTokenRequest;
+import org.springframework.stereotype.Component;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+
+import com.nss.pibblest.modules.owners.api.events.OwnerGenerateVerifyToken;
+import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
+import com.nss.pibblest.modules.security.internal.core.PersistentOneTimeTokeOwnerService;
+
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+
+@Component
+public class EmailListener {
+
+    private final JavaMailSender mailSender;
+    private final TemplateEngine templateEngine;
+    private final PersistentOneTimeTokeOwnerService persistentOneTimeTokeOwnerService;
+    private final MessageSource messageSource;
+
+    @Value("${frontend.url}")
+    private String frontendUrl;
+
+    @Value("${app.email}")
+    private String fromEmail;
+
+    public EmailListener(JavaMailSender mailSender, TemplateEngine templateEngine,
+            PersistentOneTimeTokeOwnerService persistentOneTimeTokeOwnerService, MessageSource messageSource) {
+        this.mailSender = mailSender;
+        this.templateEngine = templateEngine;
+        this.persistentOneTimeTokeOwnerService = persistentOneTimeTokeOwnerService;
+        this.messageSource = messageSource;
+    }
+
+    @KafkaListener(topics = "owners-registered-topic", groupId = "notifications-group")
+    public void onOwnerRegistered(OwnerRegisteredEvent event) {
+        System.out.println("¡Evento recibido desde Kafka!");
+        try {
+            //TenantContext.setCurrentTenant(event.schemaName());
+
+            sendWelcomeMail(event.email(), event.id());
+        } catch (Exception e) {
+            System.err.println("Error al enviar el correo: " + e.getMessage());
+        }finally{
+           // TenantContext.clear();
+        }
+
+    }
+
+    @KafkaListener(topics="owners-resend-verification-token", groupId="emails-group")
+    public void onGenerateVerifyToken(OwnerGenerateVerifyToken event){
+         try {
+             sendResendTokenToVerifyOwner(event.email(), event.id());
+         } catch (Exception e) {
+
+             System.err.println("Error al enviar el correo: " + e.getMessage());
+         }
+    }
+
+    private void sendWelcomeMail(String to, UUID uuid) throws MessagingException {
+
+        MimeMessage message = mailSender.createMimeMessage();
+
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        helper.setFrom("no-reply@tuapp.com");
+        helper.setTo(to);
+        helper.setSubject("Bienvenido nihao");
+
+        GenerateOneTimeTokenRequest request = new GenerateOneTimeTokenRequest(uuid.toString());
+        String token = persistentOneTimeTokeOwnerService.generate(request).getTokenValue();
+        String frontendVerificationLink = frontendUrl + "/verify?token=" + token;
+
+        Context context = new Context();
+        context.setVariable("userEmail", to);
+        context.setVariable("userToken", token);
+        context.setVariable("verificationLink", frontendVerificationLink);
+
+        String htmlContent = templateEngine.process("welcome-email", context);
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
+    }
+
+    private void sendResendTokenToVerifyOwner(String to, UUID uuid) throws MessagingException {
+        MimeMessage message = mailSender.createMimeMessage();
+
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+        Locale locale = LocaleContextHolder.getLocale();
+
+        String subjectText = messageSource.getMessage("resend.token.subject", null,locale);
+
+        helper.setFrom(fromEmail);
+        helper.setTo(to);
+        helper.setSubject(subjectText);
+
+        GenerateOneTimeTokenRequest request = new GenerateOneTimeTokenRequest(uuid.toString());
+        String token = persistentOneTimeTokeOwnerService.generate(request).getTokenValue();
+        String frontendVerificationLink = frontendUrl + "/verify?token=" + token;
+
+        Context context = new Context();
+        context.setVariable("userEmail", to);
+        context.setVariable("userToken", token);
+        context.setVariable("verificationLink", frontendVerificationLink);
+
+        String htmlContent = templateEngine.process("resend-token-email", context);
+        helper.setText(htmlContent, true);
+        mailSender.send(message);
+
+    }
+}
+</file>
+
+</files>

@@ -16,7 +16,9 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.nss.pibblest.modules.employees.internal.core.exceptions.EmployeeBadCredentials;
 import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
 
 import io.jsonwebtoken.ExpiredJwtException;
 
@@ -117,6 +119,42 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+    
+    @ExceptionHandler(EmployeeBadCredentials.class)
+    public ResponseEntity<Map<String, Object>> handleEmployeeBadCredentials(EmployeeBadCredentials ex) {
+        Locale currentLocale = LocaleContextHolder.getLocale();
+
+        String errorTitle = messageSource.getMessage("error.auth.bad.credentials.title", null, currentLocale);
+        String errorMessage = messageSource.getMessage(ex.getMessage(), ex.getArgs(), currentLocale);
+
+        Map<String, Object> response = new HashMap<>();
+        
+        response.put("status", HttpStatus.UNAUTHORIZED.value());
+        response.put("error", errorTitle);
+        response.put("message", errorMessage);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    // Hallazgo #2: Manejador base para cualquier TranslatedRuntimeException no atrapada de forma específica
+    @ExceptionHandler(TranslatedRuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleTranslatedRuntimeException(TranslatedRuntimeException ex) {
+        Locale currentLocale = LocaleContextHolder.getLocale();
+
+        // Título genérico para excepciones de negocio
+        String errorTitle = messageSource.getMessage("error.business.rule.title", null, "Error de Operación", currentLocale);
+        
+        // Se resuelve el mensaje usando el key y los argumentos alojados en la excepción
+        String errorMessage = messageSource.getMessage(ex.getMessageKey(), ex.getArgs(), ex.getMessageKey(), currentLocale);
+
+        Map<String, Object> response = new HashMap<>();
+        
+        response.put("status", HttpStatus.UNPROCESSABLE_CONTENT.value());
+        response.put("error", errorTitle);
+        response.put("message", errorMessage);
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+    }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(
@@ -166,5 +204,5 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
     }
-
 }
+

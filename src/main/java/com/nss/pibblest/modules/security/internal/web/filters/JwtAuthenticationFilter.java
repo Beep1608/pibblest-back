@@ -59,9 +59,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             userEmail = jwtService.extractUsername(jwt);
             String owner = jwtService.extractOwner(jwt);
             String userId = jwtService.extractUserId(jwt);
+            boolean isOwner = jwtService.extractIsOwner(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-                boolean isTokenActive = sessionTrackerService.isSessionValid(userId, jwtService.extractTokenId(jwt));
+                
+                // Construcción de la llave de sesión universal (orgCode + userId)
+                String orgCode = jwtService.extractOrganizationCode(jwt);
+                String sessionKey = (orgCode != null ? orgCode : "") + userId;
+
+                boolean isTokenActive = sessionTrackerService.isSessionValid(sessionKey, jwtService.extractTokenId(jwt));
   
                 if(jwtService.isTokenValid(jwt, userEmail) && isTokenActive){
 

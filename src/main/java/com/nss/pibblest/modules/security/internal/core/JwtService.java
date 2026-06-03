@@ -31,7 +31,13 @@ public class JwtService {
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
 
-    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions){
+    // Sobrecarga para mantener compatibilidad con el método original de 6 parámetros
+    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions) {
+        return generateToken(employeeId, username, schema_name, isOwner, role, permissions, null);
+    }
+
+    // Se agrega organizationCode a los parámetros
+    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions, String organizationCode){
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("employeeId", employeeId);
@@ -40,6 +46,12 @@ public class JwtService {
         if(schema_name != null && !schema_name.isBlank()){
             extraClaims.put("owner", schema_name);
         }
+        
+        // Se inyecta el código de organización en el JWT
+        if(organizationCode != null && !organizationCode.isBlank()){
+            extraClaims.put("orgCode", organizationCode);
+        }
+        
         extraClaims.put("isOwner", isOwner);
         extraClaims.put("role", role.name());
         extraClaims.put("permissions", permissions.stream().map(Permission::name).collect(Collectors.toList()));
@@ -78,6 +90,11 @@ public class JwtService {
 
     public String extractRole(String token) {
         return extractAllClaims(token).get("role", String.class);
+    }
+
+    // Nuevo método para extraer el código de organización
+    public String extractOrganizationCode(String token) {
+        return extractAllClaims(token).get("orgCode", String.class);
     }
 
     @SuppressWarnings("unchecked")

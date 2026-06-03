@@ -16,6 +16,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity;
 import com.nss.pibblest.modules.owners.api.events.OwnerGenerateVerifyToken;
 import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
@@ -34,10 +35,13 @@ import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTo
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
 import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
 import com.nss.pibblest.modules.security.internal.core.JwtService;
+import com.nss.pibblest.modules.security.internal.core.TenantAuthenticationHelper;
 import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenExpired;
 import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenInvalid;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerEntity;
 import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerRepository;
+import com.nss.pibblest.modules.tenant.SessionTrackerService;
+import com.nss.pibblest.modules.tenant.TenantContext;
 import com.nss.pibblest.shared.Permission;
 import com.nss.pibblest.shared.Role;
 import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
@@ -51,13 +55,16 @@ public class OwnerService {
     private final OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
     private final JwtService jwtService;
     private final MessageSource messageSource;
+    private final SessionTrackerService sessionTrackerService;
+    private final TenantAuthenticationHelper tenantAuthHelper;
     
     @Value("${time.to.wait.resend.token}")
     private long timeToWaitForNextResend;
 
     public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper,
             ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository,
-            JwtService jwtService, MessageSource messageSource) {
+            JwtService jwtService, MessageSource messageSource, SessionTrackerService sessionTrackerService,
+            TenantAuthenticationHelper tenantAuthHelper) {
         this.ownerRepository = ownerRepository;
         this.encoder = encoder;
         this.ownerMapper = ownerMapper;
@@ -65,6 +72,8 @@ public class OwnerService {
         this.oneTimeTokenOwnerRepository = oneTimeTokenOwnerRepository;
         this.jwtService = jwtService;
         this.messageSource = messageSource;
+        this.sessionTrackerService = sessionTrackerService;
+        this.tenantAuthHelper = tenantAuthHelper;
     }
 
     @Transactional
@@ -101,24 +110,43 @@ public class OwnerService {
 
         OwnerEntity ownerCreated = ownerRepository.save(ownerEntity);
 
-        events.publishEvent(new OwnerRegisteredEvent(
-                ownerCreated.getId(),
-                ownerCreated.getCompany(),
-                ownerCreated.getName(),
-                ownerCreated.getLastName(),
-                ownerCreated.getEmail(),
-                ownerCreated.getSchemaName(),
-                ownerCreated.getPassword()));
+        // --- NUEVA LÓGICA: Ejecución Síncrona Segura (Hallazgos #1 y #2) ---
+        try {
+            events.publishEvent(new OwnerRegisteredEvent(
+                    ownerCreated.getId(),
+                    ownerCreated.getCompany(),
+                    ownerCreated.getName(),
+                    ownerCreated.getLastName(),
+                    ownerCreated.getEmail(),
+                    ownerCreated.getSchemaName(),
+                    ownerCreated.getPassword()));
+        } catch (Exception e) {
+            throw new TranslatedRuntimeException("error.schema.provisioning.failed", request.getCompany());
+        }
 
-        // CORRECCIÓN APLICADA: Se añaden los parámetros true, Role.OWNER, y Set.of(Permission.values())
+        // --- Extracción de la entidad Employee real del esquema del tenant ---
+        TenantContext.setCurrentTenant(ownerCreated.getSchemaName());
+        EmployeeEntity employeeEntity;
+        try {
+            employeeEntity = tenantAuthHelper.findEmployeeByUsername(ownerCreated.getEmail())
+                    .orElseThrow(() -> new TranslatedRuntimeException("error.employee.not.found.after.registration", null));
+        } finally {
+            TenantContext.clear();
+        }
+
         String token = jwtService.generateToken(
-                ownerCreated.getId(), 
-                ownerCreated.getName(), 
+                employeeEntity.getId(), 
+                employeeEntity.getUsername(), 
                 ownerCreated.getSchemaName(), 
                 true, 
-                Role.OWNER, 
-                Set.of(Permission.values())
+                employeeEntity.getRole(), 
+                employeeEntity.getPermissions(),
+                ownerCreated.getOrganizationCode()
         );
+        
+        String tokenId = jwtService.extractTokenId(token);
+        String sessionKey = ownerCreated.getOrganizationCode() + employeeEntity.getId().toString();
+        sessionTrackerService.registerNewSession(sessionKey, tokenId);
         
         String message = messageSource.getMessage("response.created.owner", null, LocaleContextHolder.getLocale());
         

@@ -32,7 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
-- Only files matching these patterns are included: src/main/java/com/nss/pibblest/modules/security/**/*.java
+- Only files matching these patterns are included: src/main/java/com/nss/pibblest/modules/security/**/*.java, src/main/java/com/nss/pibblest/modules/owners/**/*.java, src/main/java/com/nss/pibblest/shared/*.java, src/main/java/com/nss/pibblest/shared/**/*.java
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -41,11 +41,36 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+src/main/java/com/nss/pibblest/modules/owners/api/events/OwnerGenerateVerifyToken.java
+src/main/java/com/nss/pibblest/modules/owners/api/events/OwnerRegisteredEvent.java
+src/main/java/com/nss/pibblest/modules/owners/api/events/TenantSchemaReadyEvent.java
+src/main/java/com/nss/pibblest/modules/owners/api/OwnerDto.java
+src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerAlreadyExists.java
+src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerAlreadyVerified.java
+src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerBadCredentials.java
+src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerNotExists.java
+src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerNotVerifed.java
+src/main/java/com/nss/pibblest/modules/owners/internal/core/OwnerService.java
+src/main/java/com/nss/pibblest/modules/owners/internal/infrastructure/data/OwnerEntity.java
+src/main/java/com/nss/pibblest/modules/owners/internal/infrastructure/data/OwnerRepository.java
+src/main/java/com/nss/pibblest/modules/owners/internal/mappers/OwnerMapper.java
+src/main/java/com/nss/pibblest/modules/owners/internal/utils/IdentifierGenerator.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/OwnerController.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/OwnerExceptionHandler.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/createOwner/CreateOwnerRequest.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/createOwner/CreateOwnerResponse.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/profile/OwnerProfileResponse.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/profile/UpdateProfileRequest.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenRequest.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenResponse.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/verifyOwner/VerifyOwnerRequest.java
+src/main/java/com/nss/pibblest/modules/owners/internal/web/request/verifyOwner/VerifyOwnerResponse.java
 src/main/java/com/nss/pibblest/modules/security/internal/core/exceptions/OneTimeTokenExpired.java
 src/main/java/com/nss/pibblest/modules/security/internal/core/exceptions/OneTimeTokenInvalid.java
 src/main/java/com/nss/pibblest/modules/security/internal/core/JwtService.java
 src/main/java/com/nss/pibblest/modules/security/internal/core/PersistentOneTimeTokeOwnerService.java
 src/main/java/com/nss/pibblest/modules/security/internal/core/SecurityService.java
+src/main/java/com/nss/pibblest/modules/security/internal/core/TenantAuthenticationHelper.java
 src/main/java/com/nss/pibblest/modules/security/internal/infrastructure/config/PasswordConfig.java
 src/main/java/com/nss/pibblest/modules/security/internal/infrastructure/config/SecurityConfig.java
 src/main/java/com/nss/pibblest/modules/security/internal/infrastructure/data/OneTimeTokenOwnerEntity.java
@@ -55,10 +80,182 @@ src/main/java/com/nss/pibblest/modules/security/internal/web/request/login/Login
 src/main/java/com/nss/pibblest/modules/security/internal/web/request/login/LoginResponse.java
 src/main/java/com/nss/pibblest/modules/security/internal/web/SecurityController.java
 src/main/java/com/nss/pibblest/modules/security/internal/web/SecurityExceptionHandler.java
+src/main/java/com/nss/pibblest/shared/exceptions/EntityNotFoundException.java
+src/main/java/com/nss/pibblest/shared/exceptions/package-info.java
+src/main/java/com/nss/pibblest/shared/exceptions/TranslatedRuntimeException.java
+src/main/java/com/nss/pibblest/shared/infrastructure/JpaConfig.java
+src/main/java/com/nss/pibblest/shared/package-info.java
+src/main/java/com/nss/pibblest/shared/Permission.java
+src/main/java/com/nss/pibblest/shared/responses/package-info.java
+src/main/java/com/nss/pibblest/shared/Role.java
+src/main/java/com/nss/pibblest/shared/StoreStatus.java
+src/main/java/com/nss/pibblest/shared/web/GlobalExceptionHandler.java
+src/main/java/com/nss/pibblest/shared/web/package-info.java
+src/main/java/com/nss/pibblest/shared/web/WebConfig.java
 </directory_structure>
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="src/main/java/com/nss/pibblest/modules/security/internal/core/TenantAuthenticationHelper.java">
+package com.nss.pibblest.modules.security.internal.core;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.stereotype.Service;
+
+import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManagerFactory;
+
+@Service
+public class TenantAuthenticationHelper {
+
+    private final EntityManagerFactory entityManagerFactory;
+
+    public TenantAuthenticationHelper(EntityManagerFactory entityManagerFactory) {
+        this.entityManagerFactory = entityManagerFactory;
+    }
+
+    public Optional<EmployeeEntity> findEmployeeByUsername(String username) {
+        
+        // 1. Creamos un EntityManager 100% nuevo. Al ser instanciado, 
+        // Hibernate se ve forzado a invocar tu CurrentTenantResolver (que ahora ya tiene el nuevo schema).
+        EntityManager em = entityManagerFactory.createEntityManager();
+        
+        try {
+            // 2. Ejecutamos la consulta. Tu TenantConnectionProvider inyectará 
+            // el SET search_path TO "esquema_del_owner" correctamente.
+            List<EmployeeEntity> result = em.createQuery(
+                    "SELECT e FROM EmployeeEntity e WHERE e.username = :username", 
+                    EmployeeEntity.class)
+                    .setParameter("username", username)
+                    .getResultList();
+            
+            return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
+            
+        } finally {
+            // 3. Cerramos el EntityManager. Tu TenantConnectionProvider invocará 
+            // releaseConnection y hará el SET search_path TO identity, devolviendo la conexión limpia al pool.
+            em.close(); 
+        }
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/api/events/TenantSchemaReadyEvent.java">
+package com.nss.pibblest.modules.owners.api.events;
+
+import org.springframework.modulith.events.Externalized;
+
+@Externalized("tenant-schema-ready-topic")
+public record TenantSchemaReadyEvent(
+    String schemaName,
+    String email,
+    String encodedPassword,
+    String name,
+    String lastName
+) {}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/api/OwnerDto.java">
+package com.nss.pibblest.modules.owners.api;
+
+import java.util.UUID;
+
+public record OwnerDto(
+    UUID id,
+    String company,
+    String name,
+    String lastName,
+    String email, 
+    String organizationCode
+){}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerAlreadyVerified.java">
+package com.nss.pibblest.modules.owners.internal.core.exceptions;
+
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
+
+public class OwnerAlreadyVerified extends TranslatedRuntimeException {
+    
+    public OwnerAlreadyVerified(String messageKey, Object... args) {
+        super(messageKey, args);
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerBadCredentials.java">
+package com.nss.pibblest.modules.owners.internal.core.exceptions;
+
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
+
+public class OwnerBadCredentials extends TranslatedRuntimeException {
+    
+    public OwnerBadCredentials(String messageKey, Object... args) {
+        super(messageKey, args);
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerNotExists.java">
+package com.nss.pibblest.modules.owners.internal.core.exceptions;
+
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
+
+public class OwnerNotExists extends TranslatedRuntimeException {
+
+    public OwnerNotExists(String messageKey, Object ... args) {
+        super(messageKey, args);
+        //TODO Auto-generated constructor stub
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerNotVerifed.java">
+package com.nss.pibblest.modules.owners.internal.core.exceptions;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
+
+@ResponseStatus(HttpStatus.FORBIDDEN)
+public class OwnerNotVerifed extends TranslatedRuntimeException {
+
+    public OwnerNotVerifed(String messageKey, Object[] args) {
+        super(messageKey, args);
+        //TODO Auto-generated constructor stub
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/profile/OwnerProfileResponse.java">
+package com.nss.pibblest.modules.owners.internal.web.request.profile;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import java.time.ZonedDateTime;
+import java.util.UUID;
+
+@Schema(description = "Datos públicos del perfil del Owner")
+public record OwnerProfileResponse(
+    UUID id,
+    String company,
+    String name,
+    String lastName,
+    String email,
+    String organizationCode,
+    boolean isActive,
+    ZonedDateTime verifiedAt
+) {}
+</file>
 
 <file path="src/main/java/com/nss/pibblest/modules/security/internal/core/exceptions/OneTimeTokenExpired.java">
 package com.nss.pibblest.modules.security.internal.core.exceptions;
@@ -110,10 +307,16 @@ public class PasswordConfig {
 <file path="src/main/java/com/nss/pibblest/modules/security/internal/web/request/login/LoginRequest.java">
 package com.nss.pibblest.modules.security.internal.web.request.login;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginRequest {
 
+    @NotBlank(message = "{validation.login.email.notblank}")
     private String email;
+
+    @NotBlank(message = "{validation.login.password.notblank}")
     private String password;
+
     private String organizationCode;
 
     public String getEmail() {
@@ -139,9 +342,239 @@ public class LoginRequest {
     public void setOrganizationCode(String organizationCode) {
         this.organizationCode = organizationCode;
     }
+}
+</file>
 
+<file path="src/main/java/com/nss/pibblest/shared/exceptions/EntityNotFoundException.java">
+package com.nss.pibblest.shared.exceptions;
+
+public class EntityNotFoundException extends RuntimeException {
+
+    public EntityNotFoundException(String message){
+        super(message);
+    }
     
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/exceptions/package-info.java">
+@org.springframework.modulith.NamedInterface("exceptions")
+package com.nss.pibblest.shared.exceptions;
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/exceptions/TranslatedRuntimeException.java">
+package com.nss.pibblest.shared.exceptions;
+
+public class TranslatedRuntimeException extends RuntimeException {
+
+    private final String messageKey;
+    private final Object[] args;
+
+    public TranslatedRuntimeException (String messageKey, Object... args){
+        super(messageKey);
+        this.messageKey = messageKey;
+        this.args = args;
+
+    }
+
+    public String getMessageKey() {
+        return messageKey;
+    }
+
+    public Object[] getArgs() {
+        return args;
+    }
     
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/infrastructure/JpaConfig.java">
+package com.nss.pibblest.shared.infrastructure;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.repository.config.BootstrapMode;
+
+@Configuration
+@EnableJpaRepositories(bootstrapMode = BootstrapMode.DEFERRED, basePackages="com.nss.pibblest")
+public class JpaConfig {
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/Permission.java">
+package com.nss.pibblest.shared;
+
+public enum Permission {
+    CAN_SEE,
+    CAN_READ,
+    CAN_CREATE,
+    CAN_EDIT,
+    CAN_DELETE
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/responses/package-info.java">
+@org.springframework.modulith.NamedInterface("responses")
+package com.nss.pibblest.shared.responses;
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/Role.java">
+package com.nss.pibblest.shared;
+
+public enum Role {
+    OWNER,
+    EMPLOYEE
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/StoreStatus.java">
+package com.nss.pibblest.shared;
+
+import com.fasterxml.jackson.annotation.JsonValue;
+
+public enum StoreStatus {
+    ACTIVE("active"),
+    CLOSED("closed"),
+    MAINTENANCE("maintenance"),
+    PRE_ACTIVE("pre-active");
+
+    private final String value;
+
+    StoreStatus(String value) {
+        this.value = value;
+    }
+
+    @JsonValue
+    public String getValue() {
+        return value;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/web/package-info.java">
+@org.springframework.modulith.NamedInterface("web")
+package com.nss.pibblest.shared.web;
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/web/WebConfig.java">
+package com.nss.pibblest.shared.web;
+
+import java.util.Locale;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.LocaleResolver;
+import org.springframework.web.servlet.i18n.AcceptHeaderLocaleResolver;
+
+@Configuration
+public class WebConfig {
+    
+    @Bean
+    public LocaleResolver localeResolver(){
+        AcceptHeaderLocaleResolver resolver = new AcceptHeaderLocaleResolver();
+        resolver.setDefaultLocale(Locale.of("es", "MX"));
+
+        return resolver;
+    }
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/api/events/OwnerGenerateVerifyToken.java">
+package com.nss.pibblest.modules.owners.api.events;
+
+import java.util.UUID;
+
+import org.springframework.modulith.events.Externalized;
+
+@Externalized("owners-resend-verification-token")
+public record  OwnerGenerateVerifyToken(String email,UUID id) {}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/core/exceptions/OwnerAlreadyExists.java">
+package com.nss.pibblest.modules.owners.internal.core.exceptions;
+
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
+
+public class OwnerAlreadyExists extends TranslatedRuntimeException {
+
+    public OwnerAlreadyExists(String message, Object ... args){
+        super(message, args);
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/createOwner/CreateOwnerResponse.java">
+package com.nss.pibblest.modules.owners.internal.web.request.createOwner;
+
+public record CreateOwnerResponse (
+    String message,
+    String token 
+){}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/profile/UpdateProfileRequest.java">
+package com.nss.pibblest.modules.owners.internal.web.request.profile;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+@Schema(description = "Payload para actualizar la información básica del perfil")
+public record UpdateProfileRequest(
+    
+    @NotBlank(message = "{validation.owner.name.notblank}")
+    @Size(max = 100, message = "{validation.owner.name.size}")
+    @Schema(description="Nuevo nombre del propietario", example="Gru")
+    String name,
+
+    @NotBlank(message = "{validation.owner.lastname.notblank}")
+    @Size(max = 100, message = "{validation.owner.lastname.size}")
+    @Schema(description="Nuevo apellido del propietario", example="Felonius")
+    String lastName
+
+) {}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenRequest.java">
+package com.nss.pibblest.modules.owners.internal.web.request.resendToken;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
+@Schema(description = "Payload para solicitar el reenvío del token de verificación")
+public record ResendTokenRequest(
+    
+    @NotBlank(message="{validation.owner.email.notblank}")
+    @Email(message="{validation.owner.email.format}")
+    @Schema(description="Correo electrónico asociado a la cuenta", example="hola@example.com")
+    String email
+
+) {}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/verifyOwner/VerifyOwnerRequest.java">
+package com.nss.pibblest.modules.owners.internal.web.request.verifyOwner;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
+public class VerifyOwnerRequest {
+
+    @NotBlank(message = "{validation.owner.token.notblank}")
+    @Size(min = 10, max = 512, message = "{validation.owner.token.size}")
+    private String token;
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 }
 </file>
 
@@ -476,6 +909,148 @@ public class SecurityExceptionHandler {
 }
 </file>
 
+<file path="src/main/java/com/nss/pibblest/shared/package-info.java">
+@org.springframework.modulith.ApplicationModule
+package com.nss.pibblest.shared;
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/utils/IdentifierGenerator.java">
+package com.nss.pibblest.modules.owners.internal.utils;
+
+import java.util.UUID;
+import java.text.Normalizer;
+
+public class IdentifierGenerator {
+
+    public static String generateOrganizationCode(String company) {
+        String cleanName = sanitize(company);
+        String prefix = cleanName.length() > 4 ? cleanName.substring(0, 4) : cleanName;
+        String suffix = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        
+        return prefix.toUpperCase() + "-" + suffix;
+    }
+
+    public static String generateSchemaName(String company) {
+        String cleanName = sanitize(company).toLowerCase();
+        
+        // Truncado defensivo para evitar desbordamiento del límite físico de 63 caracteres en SQL
+        if (cleanName.length() > 30) {
+            cleanName = cleanName.substring(0, 30);
+        }
+        
+        String uniqueId = UUID.randomUUID().toString().substring(0, 8);
+        
+        return cleanName + "_" + uniqueId + "_schema";
+    }
+
+    private static String sanitize(String input) {
+        if (input == null) return "ORG";
+        String normalized = Normalizer.normalize(input, Normalizer.Form.NFD);
+        return normalized.replaceAll("[^\\p{ASCII}]", "") 
+                         .replaceAll("[^a-zA-Z0-9]", "") 
+                         .toUpperCase();
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/OwnerExceptionHandler.java">
+package com.nss.pibblest.modules.owners.internal.web;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotExists;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotVerifed;
+
+@RestControllerAdvice(basePackages={"com.nss.pibblest.modules.owners.internal.web", "com.nss.pibblest.modules.security.internal.web"})
+public class OwnerExceptionHandler {
+    
+    private final MessageSource messageSource;
+
+    public OwnerExceptionHandler(MessageSource messageSource){
+        this.messageSource = messageSource;
+    }
+
+    @ExceptionHandler(OwnerAlreadyExists.class)
+    public ResponseEntity<Map<String,Object>> handleOwnerAlreadyExists(OwnerAlreadyExists ex){
+        
+        Locale currentLocale = LocaleContextHolder.getLocale();
+
+        String errorTitle = messageSource.getMessage("error.owner.conflict.title", null,currentLocale);
+
+        String localizedMessage = messageSource.getMessage(
+            ex.getMessage(),
+            ex.getArgs(), 
+            LocaleContextHolder.getLocale()
+        );
+
+        Map<String,Object> response = new HashMap<>();
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", errorTitle);
+        response.put("message", localizedMessage);
+        
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(OwnerNotExists.class)
+    public ResponseEntity<Map<String, Object>> handleOwnerNotExists (OwnerNotExists ex){
+        Locale currentLocale = LocaleContextHolder.getLocale();
+
+        String errorTitle = messageSource.getMessage("error.owner.not.exits.title", null, currentLocale);
+
+        String localizedMessage = messageSource.getMessage( ex.getMessage(),
+            ex.getArgs(), 
+            LocaleContextHolder.getLocale()
+        );
+
+        Map<String,Object> response = new HashMap<>();
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", errorTitle);
+        response.put("message", localizedMessage);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+    @ExceptionHandler(OwnerNotVerifed.class)
+    public ResponseEntity<Map<String, Object>> handleOwnerNotVerified(OwnerNotVerifed ex){
+
+        Locale currentLocale = LocaleContextHolder.getLocale();
+
+        String errorTitle = messageSource.getMessage(ex.getMessageKey(), null,currentLocale);
+
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("status", HttpStatus.FORBIDDEN.value());
+        response.put("error", errorTitle);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+
+    }
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/resendToken/ResendTokenResponse.java">
+package com.nss.pibblest.modules.owners.internal.web.request.resendToken;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(description = "Respuesta estándar tras solicitar un nuevo token")
+public record ResendTokenResponse(
+    
+    @Schema(description="Mensaje de confirmación genérico por razones de seguridad")
+    String message
+
+) {}
+</file>
+
 <file path="src/main/java/com/nss/pibblest/modules/security/internal/web/SecurityController.java">
 package com.nss.pibblest.modules.security.internal.web;
 
@@ -510,6 +1085,220 @@ public class SecurityController {
         return securityService.login(request);
     }
     
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/api/events/OwnerRegisteredEvent.java">
+package com.nss.pibblest.modules.owners.api.events;
+
+import java.util.UUID;
+import org.springframework.modulith.events.Externalized;
+
+@Externalized("owners-registered-topic")
+public record OwnerRegisteredEvent (
+   UUID id,
+   String company,
+   String name,
+   String lastName,
+   String email,
+   String schemaName,
+   String encodedPassword
+){}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/verifyOwner/VerifyOwnerResponse.java">
+package com.nss.pibblest.modules.owners.internal.web.request.verifyOwner;
+
+
+public class VerifyOwnerResponse  {
+
+    private String message;
+
+    public VerifyOwnerResponse(String message) {
+
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/infrastructure/data/OwnerEntity.java">
+package com.nss.pibblest.modules.owners.internal.infrastructure.data;
+
+import java.time.ZonedDateTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "owners", schema="identity")
+public class OwnerEntity {
+
+    @Id
+    @GeneratedValue
+    private UUID id;
+    
+    @Column(name="company", nullable=false, unique=true, length=100)
+    private String company;
+
+    @Column(name="name", nullable=false, length=100)
+    private String name;
+
+    @Column(name="last_name", nullable=false, length=100)
+    private String lastName;
+
+    @Column(nullable=false, unique=true, length=255)
+    private String email;
+
+    @Column(name="verified_at", nullable=true)
+    private ZonedDateTime verifiedAt;
+
+    @Column(nullable=false, length=72)
+    private String password;
+
+    @Column(name = "organization_code", unique = true, length = 20)
+    private String organizationCode;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean isActive;
+
+    @Column(name = "last_login")
+    private ZonedDateTime lastLogin;
+
+    @Column(name = "schema_name", unique = true, length = 63)
+    private String schemaName;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private ZonedDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private ZonedDateTime updatedAt;
+
+    public OwnerEntity() {}
+
+    public OwnerEntity(String company, String name, String lastName, String email, String password, String organizationCode, String schemaName) {
+        this.company = company;
+        this.name = name;
+        this.lastName = lastName;
+        this.email = email;
+        this.password = password;
+        this.organizationCode = organizationCode;
+        this.schemaName = schemaName;
+        this.isActive = false;
+    }
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+    public String getCompany() { return company; }
+    public void setCompany(String company) { this.company = company; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    public String getOrganizationCode() { return organizationCode; }
+    public void setOrganizationCode(String organizationCode) { this.organizationCode = organizationCode; }
+    public boolean isIsActive() { return isActive; }
+    public void setIsActive(boolean isActive) { this.isActive = isActive; }
+    public ZonedDateTime getLastLogin() { return lastLogin; }
+    public void setLastLogin(ZonedDateTime lastLogin) { this.lastLogin = lastLogin; }
+    public String getSchemaName() { return schemaName; }
+    public void setSchemaName(String schemaName) { this.schemaName = schemaName; }
+    public ZonedDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(ZonedDateTime createdAt) { this.createdAt = createdAt; }
+    public ZonedDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(ZonedDateTime updatedAt) { this.updatedAt = updatedAt; }
+    public ZonedDateTime getVerifiedAt() { return verifiedAt; }
+    public void setVerifiedAt(ZonedDateTime verifiedAt) { this.verifiedAt = verifiedAt; }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/infrastructure/data/OwnerRepository.java">
+package com.nss.pibblest.modules.owners.internal.infrastructure.data;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface OwnerRepository extends JpaRepository<OwnerEntity, UUID> {
+    
+    boolean existsByEmail(String email);
+    boolean existsByOrganizationCode(String organizationCode);
+    boolean existsByCompany(String company);
+    boolean existsBySchemaName(String schemaName);
+
+    Optional<OwnerEntity> findEntityByOrganizationCode(String organizationCode);
+    Optional<OwnerEntity> findByEmail(String email);
+    Optional<OwnerEntity> findByCompany(String company);
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/mappers/OwnerMapper.java">
+package com.nss.pibblest.modules.owners.internal.mappers;
+
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+
+import com.nss.pibblest.modules.owners.api.OwnerDto;
+import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
+import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.OwnerProfileResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.UpdateProfileRequest;
+
+@Mapper(componentModel="spring")
+public interface OwnerMapper {
+    
+    OwnerDto toDto(OwnerEntity entity);
+    
+    OwnerProfileResponse toProfileResponse(OwnerEntity entity);
+
+    @Mapping(target= "id", ignore=true)
+    @Mapping(target= "isActive", ignore=true)
+    @Mapping(target= "lastLogin", ignore=true)
+    @Mapping(target= "createdAt", ignore=true)
+    @Mapping(target= "updatedAt", ignore=true)
+    @Mapping(target= "verifiedAt", ignore=true)
+    @Mapping(target= "organizationCode", ignore=true)
+    @Mapping(target= "schemaName", ignore=true)
+    OwnerEntity toEntity(CreateOwnerRequest request);
+
+    // Actualiza una entidad existente ignorando los campos críticos
+    @Mapping(target= "id", ignore=true)
+    @Mapping(target= "company", ignore=true)
+    @Mapping(target= "email", ignore=true)
+    @Mapping(target= "password", ignore=true)
+    @Mapping(target= "isActive", ignore=true)
+    @Mapping(target= "lastLogin", ignore=true)
+    @Mapping(target= "createdAt", ignore=true)
+    @Mapping(target= "updatedAt", ignore=true)
+    @Mapping(target= "verifiedAt", ignore=true)
+    @Mapping(target= "organizationCode", ignore=true)
+    @Mapping(target= "schemaName", ignore=true)
+    void updateEntityFromRequest(UpdateProfileRequest request, @MappingTarget OwnerEntity entity);
 }
 </file>
 
@@ -575,9 +1364,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             userEmail = jwtService.extractUsername(jwt);
             String owner = jwtService.extractOwner(jwt);
             String userId = jwtService.extractUserId(jwt);
+            boolean isOwner = jwtService.extractIsOwner(jwt);
 
             if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null){
-                boolean isTokenActive = sessionTrackerService.isSessionValid(userId, jwtService.extractTokenId(jwt));
+                
+                // Construcción de la llave de sesión universal (orgCode + userId)
+                String orgCode = jwtService.extractOrganizationCode(jwt);
+                String sessionKey = (orgCode != null ? orgCode : "") + userId;
+
+                boolean isTokenActive = sessionTrackerService.isSessionValid(sessionKey, jwtService.extractTokenId(jwt));
   
                 if(jwtService.isTokenValid(jwt, userEmail) && isTokenActive){
 
@@ -616,6 +1411,251 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 TenantContext.clear();
             }
         }
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/shared/web/GlobalExceptionHandler.java">
+package com.nss.pibblest.shared.web;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.core.PropertyReferenceException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
+
+import io.jsonwebtoken.ExpiredJwtException;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    private final MessageSource messageSource;
+
+    public GlobalExceptionHandler(MessageSource messageSource) {
+        this.messageSource = messageSource;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+
+        Map<String, String> errors = new HashMap<>();
+
+        ex.getBindingResult().getFieldErrors().forEach(error -> {
+            String fieldName = error.getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, Object>> handleDatabaseConstraints(DataIntegrityViolationException ex) {
+
+        Locale currentLocale = LocaleContextHolder.getLocale();
+
+        String errorTitle = messageSource.getMessage("error.database.conflict.title", null, currentLocale);
+        String errorMessage = messageSource.getMessage("error.database.conflict.message", null, currentLocale);
+
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", errorTitle);
+        response.put("message", errorMessage);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+
+    }
+
+    @ExceptionHandler(PropertyReferenceException.class)
+    public ResponseEntity<Map<String, Object>> handlePropertyReferenceException(PropertyReferenceException ex) {
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String errorTitle = messageSource.getMessage("error.properties.reference.title", null, locale);
+
+        String errorMessage = messageSource.getMessage("error.properties.reference.message",
+                new Object[] { ex.getPropertyName() }, locale);
+
+        Map<String, Object> response = new HashMap<>();
+
+        response.put("status", HttpStatus.CONFLICT.value());
+        response.put("error", errorTitle);
+        response.put("message", errorMessage);
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    @ExceptionHandler(ExpiredJwtException.class)
+    public ResponseEntity<Map<String, Object>> handleExpiredJwtException(ExpiredJwtException ex) {
+        String error = messageSource.getMessage("error.jwt.expired", null, LocaleContextHolder.getLocale());
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.UNAUTHORIZED.value());
+        response.put("error", error);
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<Map<String, Object>> handleIllegalStateException(IllegalStateException ex) {
+        String errorTile = messageSource.getMessage("error.illegal.state", null, LocaleContextHolder.getLocale());
+
+        String errorMessage = ex.getMessage();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.UNPROCESSABLE_CONTENT.value());
+        response.put("error", errorTile);
+        response.put("message", errorMessage);
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleEntityNotFoundException(EntityNotFoundException ex) {
+        String errorTile = messageSource.getMessage("error.entity.not.found", null, LocaleContextHolder.getLocale());
+
+        String errorMessage = ex.getMessage();
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.NOT_FOUND.value());
+        response.put("error", errorTile);
+        response.put("message", errorMessage);
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException ex) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.UNPROCESSABLE_CONTENT.value());
+
+        Throwable cause = ex.getCause();
+        InvalidFormatException targetEx = null;
+
+        while (cause != null) {
+            if (cause instanceof InvalidFormatException) {
+                targetEx = (InvalidFormatException) cause;
+                break;
+            }
+            cause = cause.getCause(); // Seguimos bajando en la pila
+        }
+
+        if (targetEx != null) {
+
+            String rejectedValue = targetEx.getValue() != null ? targetEx.getValue().toString() : "null";
+            String fieldName = !targetEx.getPath().isEmpty() ? targetEx.getPath().get(0).getFieldName() : "desconocido";
+
+            String errorTitle = messageSource.getMessage("error.invalid.data.title", null,
+                    LocaleContextHolder.getLocale());
+            String errorMessage = messageSource.getMessage("error.invalid.enum",
+                    new Object[] { rejectedValue, fieldName }, LocaleContextHolder.getLocale());
+
+            response.put("error", errorTitle);
+            response.put("message", errorMessage);
+            response.put("invalidValue", rejectedValue);
+            response.put("field", fieldName);
+
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+        }
+
+        String causeSummary = ex.getCause() != null ? ex.getCause().getClass().getSimpleName() : "Request body missing";
+
+        String errorTitle = messageSource.getMessage("error.http.not.readable", new Object[] { causeSummary },
+                LocaleContextHolder.getLocale());
+        String errorMessage = messageSource.getMessage("error.malformed.request", null,
+                LocaleContextHolder.getLocale());
+
+        response.put("error", errorTitle);
+        response.put("message", errorMessage);
+
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
+    }
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/request/createOwner/CreateOwnerRequest.java">
+package com.nss.pibblest.modules.owners.internal.web.request.createOwner;
+
+import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+public class CreateOwnerRequest {
+
+    @NotBlank(message="{validation.owner.company.notblank}")
+    @Size(max = 100, message = "{validation.owner.company.size}")
+    @Schema(description="Nombre de la empresa del propietario", example="Minion Inc.")
+    private String company;
+
+    @NotBlank(message = "{validation.owner.name.notblank}")
+    @Size(max = 100, message = "{validation.owner.name.size}")
+    @Schema(description="Nombre del propietario", example="Papoi")
+    private String name;
+
+    @NotBlank(message = "{validation.owner.lastname.notblank}")
+    @Size(max = 100, message = "{validation.owner.lastname.size}")
+    @Schema(description="Apellido del propietario", example="Morales")
+    private String lastName;
+
+    @Email(message="{validation.owner.email.format}") 
+    @NotBlank(message = "{validation.owner.email.notblank}")
+    @Size(max = 255, message = "{validation.owner.email.size}")
+    @Schema(description="Email del propietario", example="hola@example.com")
+    private String email;
+
+    @NotBlank(message = "{validation.owner.password.notblank}") 
+    @Size(min = 8, max = 64, message = "{validation.owner.password.size}") 
+    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[\\W_]).*$", message = "{validation.owner.password.complexity}")
+    @Schema(description="Password de la cuenta", example="Secreta123!")
+    private String password;
+
+    public CreateOwnerRequest() {}
+
+    public CreateOwnerRequest(String company){
+        this.company = company;
+    }
+
+    public String getCompany() { return company; }
+    public void setCompany(String company) { this.company = company; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getLastName() { return lastName; }
+    public void setLastName(String lastName) { this.lastName = lastName; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    
+    @Override
+    public String toString() {
+        return "CreateOwnerRequest{" +
+                "company='" + company + '\'' +
+                ", name='" + name + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", password='[PROTECTED]'" + 
+                '}';
     }
 }
 </file>
@@ -744,7 +1784,13 @@ public class JwtService {
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
 
-    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions){
+    // Sobrecarga para mantener compatibilidad con el método original de 6 parámetros
+    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions) {
+        return generateToken(employeeId, username, schema_name, isOwner, role, permissions, null);
+    }
+
+    // Se agrega organizationCode a los parámetros
+    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions, String organizationCode){
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("employeeId", employeeId);
@@ -753,6 +1799,12 @@ public class JwtService {
         if(schema_name != null && !schema_name.isBlank()){
             extraClaims.put("owner", schema_name);
         }
+        
+        // Se inyecta el código de organización en el JWT
+        if(organizationCode != null && !organizationCode.isBlank()){
+            extraClaims.put("orgCode", organizationCode);
+        }
+        
         extraClaims.put("isOwner", isOwner);
         extraClaims.put("role", role.name());
         extraClaims.put("permissions", permissions.stream().map(Permission::name).collect(Collectors.toList()));
@@ -793,6 +1845,11 @@ public class JwtService {
         return extractAllClaims(token).get("role", String.class);
     }
 
+    // Nuevo método para extraer el código de organización
+    public String extractOrganizationCode(String token) {
+        return extractAllClaims(token).get("orgCode", String.class);
+    }
+
     @SuppressWarnings("unchecked")
     public List<String> extractPermissions(String token) {
         return extractAllClaims(token).get("permissions", List.class);
@@ -831,10 +1888,94 @@ public class JwtService {
 }
 </file>
 
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/web/OwnerController.java">
+package com.nss.pibblest.modules.owners.internal.web;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.nss.pibblest.modules.owners.internal.core.OwnerService;
+import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.OwnerProfileResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.UpdateProfileRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/owners")
+@Tag(name="Owners", description="Endpoints para la gestión de Owners")
+public class OwnerController {
+    
+    private final OwnerService ownerService;
+
+    public OwnerController(OwnerService ownerService) {
+        this.ownerService = ownerService;
+    }
+
+    @PostMapping("/register")
+    @Operation(summary="Registrar un owner")
+    public ResponseEntity<CreateOwnerResponse> registerOwner(@Valid @RequestBody CreateOwnerRequest request){
+        return ownerService.registerOwner(request);
+    }
+
+    @PostMapping("/verify")
+    @Operation(summary="Verificar cuenta de Owner")
+    public ResponseEntity<VerifyOwnerResponse> verifyOwner(@Valid @RequestBody VerifyOwnerRequest request){
+        return ownerService.verifyOwner(request);
+    }
+
+    @PostMapping("/resend-token")
+    @Operation(summary="Reenviar token de verificación")
+    public ResponseEntity<ResendTokenResponse> resendToken(@Valid @RequestBody ResendTokenRequest request){
+        return ownerService.resendToken(request);
+    }
+
+    @GetMapping("/profile")
+    @Operation(
+        summary="Obtener perfil", 
+        description="Retorna el perfil completo del Owner autenticado basado en su JWT."
+    )
+    @ApiResponse(responseCode="200", description="Perfil obtenido exitosamente")
+    public ResponseEntity<OwnerProfileResponse> getMyProfile() {
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+       // El nombre del usuario en el token suele ser el email en configuraciones estándar
+       return ownerService.getProfile(authentication.getName());
+    }
+
+    @PutMapping("/profile")
+    @Operation(
+        summary="Actualizar perfil", 
+        description="Actualiza la información básica (nombre y apellido) del Owner autenticado."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode="200", description="Perfil actualizado exitosamente"),
+        @ApiResponse(responseCode="400", description="Datos de validación incorrectos")
+    })
+    public ResponseEntity<OwnerProfileResponse> updateMyProfile(@Valid @RequestBody UpdateProfileRequest request) {
+       Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+       return ownerService.updateProfile(authentication.getName(), request);
+    }
+}
+</file>
+
 <file path="src/main/java/com/nss/pibblest/modules/security/internal/core/SecurityService.java">
 package com.nss.pibblest.modules.security.internal.core;
-
-import java.util.Set;
 
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -845,8 +1986,6 @@ import org.springframework.stereotype.Service;
 
 import com.nss.pibblest.modules.employees.internal.core.exceptions.EmployeeBadCredentials;
 import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity;
-import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeRepository;
-import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerBadCredentials;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotExists;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
@@ -854,24 +1993,22 @@ import com.nss.pibblest.modules.security.internal.web.request.login.LoginRequest
 import com.nss.pibblest.modules.security.internal.web.request.login.LoginResponse;
 import com.nss.pibblest.modules.tenant.SessionTrackerService;
 import com.nss.pibblest.modules.tenant.TenantContext;
-import com.nss.pibblest.shared.Permission;
-import com.nss.pibblest.shared.Role;
 
 @Service
 public class SecurityService {
 
     private final OwnerRepository ownerRepository;
-    private final EmployeeRepository employeeRepository;
+    private final TenantAuthenticationHelper tenantAuthHelper; // Inyectamos el nuevo helper
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final MessageSource messageSource;
     private final SessionTrackerService sessionTrackerService;
 
-    public SecurityService(OwnerRepository ownerRepository, EmployeeRepository employeeRepository,
+    public SecurityService(OwnerRepository ownerRepository, TenantAuthenticationHelper tenantAuthHelper,
             PasswordEncoder passwordEncoder, JwtService jwtService, MessageSource messageSource,
             SessionTrackerService sessionTrackerService) {
         this.ownerRepository = ownerRepository;
-        this.employeeRepository = employeeRepository;
+        this.tenantAuthHelper = tenantAuthHelper; // Reemplaza al employeeRepository directo
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.messageSource = messageSource;
@@ -879,54 +2016,275 @@ public class SecurityService {
     }
 
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
-        if (request.getOrganizationCode() == null || request.getOrganizationCode().isBlank()) {
-            return ResponseEntity.status(HttpStatus.OK).body(loginOwner(request));
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(loginEmployee(request));
+        return ResponseEntity.status(HttpStatus.OK).body(processUnifiedLogin(request));
     }
 
-    private LoginResponse loginOwner(LoginRequest request) {
-        OwnerEntity ownerEntity = ownerRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new OwnerBadCredentials("error.owner.bad.credentials", null));
+    private LoginResponse processUnifiedLogin(LoginRequest request) {
+        OwnerEntity ownerEntity;
 
-        if (!passwordEncoder.matches(request.getPassword(), ownerEntity.getPassword())) {
-            throw new OwnerBadCredentials("error.owner.bad.credentials", null);
+        // PASO 1: Descubrimiento de Esquema (Directorio Global)
+        if (request.getOrganizationCode() != null && !request.getOrganizationCode().isBlank()) {
+            ownerEntity = ownerRepository.findEntityByOrganizationCode(request.getOrganizationCode())
+                    .orElseThrow(() -> new OwnerNotExists("error.organization.not.exists", request.getOrganizationCode()));
+        } else {
+            // Si no manda código, asumimos que es Owner y buscamos su esquema por email
+            ownerEntity = ownerRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new EmployeeBadCredentials("error.bad.credentials", null));
         }
-
-        String token = jwtService.generateToken(ownerEntity.getId(), ownerEntity.getName(), ownerEntity.getSchemaName(), true, Role.OWNER, Set.of(Permission.values()));
-
-        String tokenId = jwtService.extractTokenId(token);
-        sessionTrackerService.registerNewSession(ownerEntity.getId().toString(), tokenId);
-       
-        String message = messageSource.getMessage("owner.login.success", new Object[] { ownerEntity.getName() },
-                LocaleContextHolder.getLocale());
-        return new LoginResponse(message, token);
-    }
-
-    private LoginResponse loginEmployee(LoginRequest request) {
-        OwnerEntity ownerEntity = ownerRepository
-                .findEntityByOrganizationCode(request.getOrganizationCode())
-                .orElseThrow(() -> new OwnerNotExists("error.organization.not.exists", request.getOrganizationCode()));
 
         String schema = ownerEntity.getSchemaName();
+        String orgCode = ownerEntity.getOrganizationCode(); 
+        
+        // PASO 2: Establecer contexto del Inquilino
         TenantContext.setCurrentTenant(schema);
 
-        EmployeeEntity employeeEntity = employeeRepository
-                .findByUsername(request.getEmail())
-                .orElseThrow(() -> new EmployeeBadCredentials("error.employee.bad.credentials", null));
+        try {
+            // PASO 3: Autenticación en la tabla employees (Forzando nueva conexión)
+            EmployeeEntity employeeEntity = tenantAuthHelper.findEmployeeByUsername(request.getEmail())
+                    .orElseThrow(() -> new EmployeeBadCredentials("error.employee.bad.credentials", null));
 
-        if (!passwordEncoder.matches(request.getPassword(), employeeEntity.getPassword())) {
-            throw new EmployeeBadCredentials("error.employee.bad.credentials", null);
+            if (!passwordEncoder.matches(request.getPassword(), employeeEntity.getPassword())) {
+                throw new EmployeeBadCredentials("error.employee.bad.credentials", null);
+            }
+
+            // Identificamos si es dueño basándonos en el rol que tiene dentro de la tabla employees
+            boolean isOwner = employeeEntity.getRole().name().equalsIgnoreCase("OWNER");
+
+            // PASO 4: Generación de Tokens e inyección de contexto
+            String token = jwtService.generateToken(
+                    employeeEntity.getId(), 
+                    employeeEntity.getUsername(), 
+                    schema, 
+                    isOwner, 
+                    employeeEntity.getRole(), 
+                    employeeEntity.getPermissions(), 
+                    orgCode
+            );
+
+            String tokenId = jwtService.extractTokenId(token);
+            
+            // La sesión siempre se registra como orgCode + UUID de la tabla employees
+            String sessionKey = (orgCode != null ? orgCode : "") + employeeEntity.getId().toString();
+            sessionTrackerService.registerNewSession(sessionKey, tokenId);
+
+            String message = messageSource.getMessage("login.success.unified",
+                    new Object[] { employeeEntity.getUsername() }, LocaleContextHolder.getLocale());
+            
+            return new LoginResponse(message, token);
+            
+        } finally {
+            // Siempre limpiamos el contexto para evitar Tenant Leaks
+            TenantContext.clear();
+        }
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/owners/internal/core/OwnerService.java">
+package com.nss.pibblest.modules.owners.internal.core;
+
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Optional;
+import java.util.Set;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.nss.pibblest.modules.owners.api.events.OwnerGenerateVerifyToken;
+import com.nss.pibblest.modules.owners.api.events.OwnerRegisteredEvent;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyExists;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerAlreadyVerified;
+import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotExists;
+import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
+import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
+import com.nss.pibblest.modules.owners.internal.mappers.OwnerMapper;
+import com.nss.pibblest.modules.owners.internal.utils.IdentifierGenerator;
+import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.createOwner.CreateOwnerResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.OwnerProfileResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.profile.UpdateProfileRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.resendToken.ResendTokenResponse;
+import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerRequest;
+import com.nss.pibblest.modules.owners.internal.web.request.verifyOwner.VerifyOwnerResponse;
+import com.nss.pibblest.modules.security.internal.core.JwtService;
+import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenExpired;
+import com.nss.pibblest.modules.security.internal.core.exceptions.OneTimeTokenInvalid;
+import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerEntity;
+import com.nss.pibblest.modules.security.internal.infrastructure.data.OneTimeTokenOwnerRepository;
+import com.nss.pibblest.shared.Permission;
+import com.nss.pibblest.shared.Role;
+import com.nss.pibblest.shared.exceptions.TranslatedRuntimeException;
+
+@Service
+public class OwnerService {
+    private final OwnerRepository ownerRepository;
+    private final PasswordEncoder encoder;
+    private final OwnerMapper ownerMapper;
+    private final ApplicationEventPublisher events;
+    private final OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository;
+    private final JwtService jwtService;
+    private final MessageSource messageSource;
+    
+    @Value("${time.to.wait.resend.token}")
+    private long timeToWaitForNextResend;
+
+    public OwnerService(OwnerRepository ownerRepository, PasswordEncoder encoder, OwnerMapper ownerMapper,
+            ApplicationEventPublisher events, OneTimeTokenOwnerRepository oneTimeTokenOwnerRepository,
+            JwtService jwtService, MessageSource messageSource) {
+        this.ownerRepository = ownerRepository;
+        this.encoder = encoder;
+        this.ownerMapper = ownerMapper;
+        this.events = events;
+        this.oneTimeTokenOwnerRepository = oneTimeTokenOwnerRepository;
+        this.jwtService = jwtService;
+        this.messageSource = messageSource;
+    }
+
+    @Transactional
+    public ResponseEntity<CreateOwnerResponse> registerOwner(CreateOwnerRequest request) {
+        if (ownerRepository.existsByEmail(request.getEmail())) {
+            throw new OwnerAlreadyExists("error.owner.email.exists", request.getEmail());
         }
 
-        String token = jwtService.generateToken(employeeEntity.getId(), employeeEntity.getUsername(), ownerEntity.getSchemaName(), false, employeeEntity.getRole(), employeeEntity.getPermissions());
+        if (ownerRepository.existsByCompany(request.getCompany())) {
+            throw new OwnerAlreadyExists("error.owner.company.exists", request.getCompany());
+        }
 
-        String tokenId = jwtService.extractTokenId(token);
-        sessionTrackerService.registerNewSession(employeeEntity.getUsername(), tokenId);
+        OwnerEntity ownerEntity = ownerMapper.toEntity(request);
+        
+        boolean identifiersAssigned = false;
+        for (int i = 0; i < 3; i++) {
+            String orgCode = IdentifierGenerator.generateOrganizationCode(request.getCompany());
+            String schemaName = IdentifierGenerator.generateSchemaName(request.getCompany());
+            
+            if (!ownerRepository.existsByOrganizationCode(orgCode) && !ownerRepository.existsBySchemaName(schemaName)) {
+                ownerEntity.setOrganizationCode(orgCode);
+                ownerEntity.setSchemaName(schemaName);
+                identifiersAssigned = true;
+                break;
+            }
+        }
+        
+        if (!identifiersAssigned) {
+            throw new TranslatedRuntimeException("error.owner.registration.collision", request.getCompany());
+        }
 
-        String message = messageSource.getMessage("employee.login.success",
-                new Object[] { employeeEntity.getUsername() }, LocaleContextHolder.getLocale());
-        return new LoginResponse(message, token);
+        ownerEntity.setPassword(encoder.encode(request.getPassword()));
+        ownerEntity.setIsActive(false);
+
+        OwnerEntity ownerCreated = ownerRepository.save(ownerEntity);
+
+        events.publishEvent(new OwnerRegisteredEvent(
+                ownerCreated.getId(),
+                ownerCreated.getCompany(),
+                ownerCreated.getName(),
+                ownerCreated.getLastName(),
+                ownerCreated.getEmail(),
+                ownerCreated.getSchemaName(),
+                ownerCreated.getPassword()));
+
+        // CORRECCIÓN APLICADA: Se añaden los parámetros true, Role.OWNER, y Set.of(Permission.values())
+        String token = jwtService.generateToken(
+                ownerCreated.getId(), 
+                ownerCreated.getName(), 
+                ownerCreated.getSchemaName(), 
+                true, 
+                Role.OWNER, 
+                Set.of(Permission.values())
+        );
+        
+        String message = messageSource.getMessage("response.created.owner", null, LocaleContextHolder.getLocale());
+        
+        CreateOwnerResponse responseBody = new CreateOwnerResponse(message, token);
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseBody);
+    }
+
+    @Transactional
+    public ResponseEntity<VerifyOwnerResponse> verifyOwner(VerifyOwnerRequest request) {
+        String token = request.getToken(); 
+        
+        OneTimeTokenOwnerEntity tokenOwnerEntity = oneTimeTokenOwnerRepository.findByTokenValue(token)
+                .orElseThrow(() -> new OneTimeTokenInvalid("error.token.invalid", null));
+
+        if (tokenOwnerEntity.getExpiresAt().isBefore(ZonedDateTime.now())) {
+            throw new OneTimeTokenExpired("error.token.expired", null);
+        }
+
+        if (tokenOwnerEntity.isUsed()) {
+            throw new OwnerAlreadyVerified("error.owner.already.verified", null);
+        }
+
+        OwnerEntity ownerEntity = ownerRepository.findById(tokenOwnerEntity.getOwnerId())
+                .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", tokenOwnerEntity.getOwnerId()));
+
+        ownerEntity.setVerifiedAt(LocalDateTime.now().atZone(ZoneId.systemDefault()));
+        ownerEntity.setIsActive(true); 
+        ownerRepository.save(ownerEntity);
+
+        tokenOwnerEntity.setUsed(true);
+        oneTimeTokenOwnerRepository.save(tokenOwnerEntity);
+
+        String message = messageSource.getMessage("response.verify.owner", new Object[] { ownerEntity.getName() },
+                LocaleContextHolder.getLocale());
+        VerifyOwnerResponse response = new VerifyOwnerResponse(message);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Transactional
+    public ResponseEntity<ResendTokenResponse> resendToken(ResendTokenRequest request) {
+        Optional<OwnerEntity> ownerEntity = ownerRepository.findByEmail(request.email());
+
+        ownerEntity.ifPresent(owner -> {
+            boolean isAlreadyVerified = owner.getVerifiedAt() != null;
+
+            boolean canRequestNewToken = oneTimeTokenOwnerRepository
+                    .findTopByOwnerIdOrderByCreatedAtDesc(owner.getId())
+                    .map(latestToken -> {
+                        ZonedDateTime cooldownEnd = latestToken.getCreatedAt().plusMinutes(timeToWaitForNextResend);
+                        return ZonedDateTime.now().isAfter(cooldownEnd);
+                    })
+                    .orElse(true);
+
+            if (canRequestNewToken && !isAlreadyVerified) {
+                oneTimeTokenOwnerRepository.expireAllActiveTokensByOwnerId(owner.getId());
+                events.publishEvent(new OwnerGenerateVerifyToken(owner.getEmail(), owner.getId()));
+            }
+        });
+
+        String message = messageSource.getMessage("response.resend.token.owner", null, LocaleContextHolder.getLocale());
+        ResendTokenResponse response = new ResendTokenResponse(message);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<OwnerProfileResponse> getProfile(String email) {
+        OwnerEntity owner = ownerRepository.findByEmail(email)
+                .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", email));
+        
+        return ResponseEntity.ok(ownerMapper.toProfileResponse(owner));
+    }
+
+    @Transactional
+    public ResponseEntity<OwnerProfileResponse> updateProfile(String email, UpdateProfileRequest request) {
+        OwnerEntity owner = ownerRepository.findByEmail(email)
+                .orElseThrow(() -> new OwnerNotExists("error.owner.not.exists", email));
+        
+        ownerMapper.updateEntityFromRequest(request, owner);
+        ownerRepository.save(owner);
+        
+        return ResponseEntity.ok(ownerMapper.toProfileResponse(owner));
     }
 }
 </file>

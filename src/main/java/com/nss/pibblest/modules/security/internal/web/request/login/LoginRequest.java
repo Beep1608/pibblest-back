@@ -1,9 +1,15 @@
 package com.nss.pibblest.modules.security.internal.web.request.login;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginRequest {
 
+    @NotBlank(message = "{validation.login.email.notblank}")
     private String email;
+
+    @NotBlank(message = "{validation.login.password.notblank}")
     private String password;
+
     private String organizationCode;
 
     public String getEmail() {
@@ -29,7 +35,4 @@ public class LoginRequest {
     public void setOrganizationCode(String organizationCode) {
         this.organizationCode = organizationCode;
     }
-
-    
-    
 }

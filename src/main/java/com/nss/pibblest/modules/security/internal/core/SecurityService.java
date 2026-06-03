@@ -1,7 +1,5 @@
 package com.nss.pibblest.modules.security.internal.core;
 
-import java.util.Set;
-
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
@@ -11,8 +9,6 @@ import org.springframework.stereotype.Service;
 
 import com.nss.pibblest.modules.employees.internal.core.exceptions.EmployeeBadCredentials;
 import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity;
-import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeRepository;
-import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerBadCredentials;
 import com.nss.pibblest.modules.owners.internal.core.exceptions.OwnerNotExists;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerEntity;
 import com.nss.pibblest.modules.owners.internal.infrastructure.data.OwnerRepository;
@@ -20,24 +16,22 @@ import com.nss.pibblest.modules.security.internal.web.request.login.LoginRequest
 import com.nss.pibblest.modules.security.internal.web.request.login.LoginResponse;
 import com.nss.pibblest.modules.tenant.SessionTrackerService;
 import com.nss.pibblest.modules.tenant.TenantContext;
-import com.nss.pibblest.shared.Permission;
-import com.nss.pibblest.shared.Role;
 
 @Service
 public class SecurityService {
 
     private final OwnerRepository ownerRepository;
-    private final EmployeeRepository employeeRepository;
+    private final TenantAuthenticationHelper tenantAuthHelper; // Inyectamos el nuevo helper
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final MessageSource messageSource;
     private final SessionTrackerService sessionTrackerService;
 
-    public SecurityService(OwnerRepository ownerRepository, EmployeeRepository employeeRepository,
+    public SecurityService(OwnerRepository ownerRepository, TenantAuthenticationHelper tenantAuthHelper,
             PasswordEncoder passwordEncoder, JwtService jwtService, MessageSource messageSource,
             SessionTrackerService sessionTrackerService) {
         this.ownerRepository = ownerRepository;
-        this.employeeRepository = employeeRepository;
+        this.tenantAuthHelper = tenantAuthHelper; // Reemplaza al employeeRepository directo
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.messageSource = messageSource;
@@ -45,53 +39,65 @@ public class SecurityService {
     }
 
     public ResponseEntity<LoginResponse> login(LoginRequest request) {
-        if (request.getOrganizationCode() == null || request.getOrganizationCode().isBlank()) {
-            return ResponseEntity.status(HttpStatus.OK).body(loginOwner(request));
-        }
-        return ResponseEntity.status(HttpStatus.OK).body(loginEmployee(request));
+        return ResponseEntity.status(HttpStatus.OK).body(processUnifiedLogin(request));
     }
 
-    private LoginResponse loginOwner(LoginRequest request) {
-        OwnerEntity ownerEntity = ownerRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new OwnerBadCredentials("error.owner.bad.credentials", null));
+    private LoginResponse processUnifiedLogin(LoginRequest request) {
+        OwnerEntity ownerEntity;
 
-        if (!passwordEncoder.matches(request.getPassword(), ownerEntity.getPassword())) {
-            throw new OwnerBadCredentials("error.owner.bad.credentials", null);
+        // PASO 1: Descubrimiento de Esquema (Directorio Global)
+        if (request.getOrganizationCode() != null && !request.getOrganizationCode().isBlank()) {
+            ownerEntity = ownerRepository.findEntityByOrganizationCode(request.getOrganizationCode())
+                    .orElseThrow(() -> new OwnerNotExists("error.organization.not.exists", request.getOrganizationCode()));
+        } else {
+            // Si no manda código, asumimos que es Owner y buscamos su esquema por email
+            ownerEntity = ownerRepository.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new EmployeeBadCredentials("error.bad.credentials", null));
         }
-
-        String token = jwtService.generateToken(ownerEntity.getId(), ownerEntity.getName(), ownerEntity.getSchemaName(), true, Role.OWNER, Set.of(Permission.values()));
-
-        String tokenId = jwtService.extractTokenId(token);
-        sessionTrackerService.registerNewSession(ownerEntity.getId().toString(), tokenId);
-       
-        String message = messageSource.getMessage("owner.login.success", new Object[] { ownerEntity.getName() },
-                LocaleContextHolder.getLocale());
-        return new LoginResponse(message, token);
-    }
-
-    private LoginResponse loginEmployee(LoginRequest request) {
-        OwnerEntity ownerEntity = ownerRepository
-                .findEntityByOrganizationCode(request.getOrganizationCode())
-                .orElseThrow(() -> new OwnerNotExists("error.organization.not.exists", request.getOrganizationCode()));
 
         String schema = ownerEntity.getSchemaName();
+        String orgCode = ownerEntity.getOrganizationCode(); 
+        
+        // PASO 2: Establecer contexto del Inquilino
         TenantContext.setCurrentTenant(schema);
 
-        EmployeeEntity employeeEntity = employeeRepository
-                .findByUsername(request.getEmail())
-                .orElseThrow(() -> new EmployeeBadCredentials("error.employee.bad.credentials", null));
+        try {
+            // PASO 3: Autenticación en la tabla employees (Forzando nueva conexión)
+            EmployeeEntity employeeEntity = tenantAuthHelper.findEmployeeByUsername(request.getEmail())
+                    .orElseThrow(() -> new EmployeeBadCredentials("error.employee.bad.credentials", null));
 
-        if (!passwordEncoder.matches(request.getPassword(), employeeEntity.getPassword())) {
-            throw new EmployeeBadCredentials("error.employee.bad.credentials", null);
+            if (!passwordEncoder.matches(request.getPassword(), employeeEntity.getPassword())) {
+                throw new EmployeeBadCredentials("error.employee.bad.credentials", null);
+            }
+
+            // Identificamos si es dueño basándonos en el rol que tiene dentro de la tabla employees
+            boolean isOwner = employeeEntity.getRole().name().equalsIgnoreCase("OWNER");
+
+            // PASO 4: Generación de Tokens e inyección de contexto
+            String token = jwtService.generateToken(
+                    employeeEntity.getId(), 
+                    employeeEntity.getUsername(), 
+                    schema, 
+                    isOwner, 
+                    employeeEntity.getRole(), 
+                    employeeEntity.getPermissions(), 
+                    orgCode
+            );
+
+            String tokenId = jwtService.extractTokenId(token);
+            
+            // La sesión siempre se registra como orgCode + UUID de la tabla employees
+            String sessionKey = (orgCode != null ? orgCode : "") + employeeEntity.getId().toString();
+            sessionTrackerService.registerNewSession(sessionKey, tokenId);
+
+            String message = messageSource.getMessage("login.success.unified",
+                    new Object[] { employeeEntity.getUsername() }, LocaleContextHolder.getLocale());
+            
+            return new LoginResponse(message, token);
+            
+        } finally {
+            // Siempre limpiamos el contexto para evitar Tenant Leaks
+            TenantContext.clear();
         }
-
-        String token = jwtService.generateToken(employeeEntity.getId(), employeeEntity.getUsername(), ownerEntity.getSchemaName(), false, employeeEntity.getRole(), employeeEntity.getPermissions());
-
-        String tokenId = jwtService.extractTokenId(token);
-        sessionTrackerService.registerNewSession(employeeEntity.getUsername(), tokenId);
-
-        String message = messageSource.getMessage("employee.login.success",
-                new Object[] { employeeEntity.getUsername() }, LocaleContextHolder.getLocale());
-        return new LoginResponse(message, token);
     }
 }
