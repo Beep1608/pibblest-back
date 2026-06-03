@@ -4,12 +4,12 @@ import java.time.Duration;
 import java.time.Period;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import org.springframework.context.MessageSource;
@@ -93,7 +93,7 @@ public class StoreService {
             Map<Long, List<TagDto>> tagsByStore = storeTags.stream()
                     .collect(Collectors.groupingBy(
                             st -> st.getStoreEntity().getId(),
-                            Collectors.mapping(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId()), Collectors.toList())
+                            Collectors.mapping(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId(),0L), Collectors.toList())
                     ));
 
             storesPage.forEach(dto -> {

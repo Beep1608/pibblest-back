@@ -35,7 +35,7 @@ public interface  StoreMapper {
     default List<TagDto> mapStoreTags(List<StoreTagEntity> storeTags) {
         if (storeTags == null) return java.util.Collections.emptyList();
         return storeTags.stream()
-            .map(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId()))
+            .map(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId(),0l))
             .toList();
     }
 }

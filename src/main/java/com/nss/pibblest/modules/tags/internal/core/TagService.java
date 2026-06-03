@@ -115,9 +115,8 @@ public class TagService {
     }
 
     public ResponseEntity<GetAllTagsResponse> getAllTags(Pageable pageable) {
-        Page<TagEntity> tagsPage = tagRepository.findAll(pageable);
-
-        Page<TagDto> dtoPage = tagsPage.map(tagMapper::toDto);
+        // Usa la consulta optimizada (Hallazgo #3)
+        Page<TagDto> dtoPage = tagRepository.findAllWithUsageCount(pageable);
         GetAllTagsResponse response = new GetAllTagsResponse(dtoPage);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -204,20 +203,14 @@ public class TagService {
         return true;
     }
 
-    public ResponseEntity<GetAllTagsForProductsResponse> getAllTagsForProducts(
-            String keyword, Pageable pageable) {
+    public ResponseEntity<GetAllTagsForProductsResponse> getAllTagsForProducts(String keyword, Pageable pageable) {
+        Page<TagDto> dtoPage;
         if (keyword == null || keyword.trim().isEmpty()) {
-            Page<TagForProductsEntity> tagForProductsPage = tagForProductsRepository.findAll(pageable);
-
-            Page<TagDto> dtoPage = tagForProductsPage.map(tagMapper::fromTagForProductToDto);
-            GetAllTagsForProductsResponse response = new GetAllTagsForProductsResponse(dtoPage);
-            return ResponseEntity.status(HttpStatus.OK).body(response);
+            dtoPage = tagForProductsRepository.findAllWithUsageCount(pageable);
+        } else {
+            dtoPage = tagForProductsRepository.findByNameWithUsageCountContainingIgnoreCase(keyword, pageable);
         }
-
-        Page<TagForProductsEntity> tagForProductsPage = tagForProductsRepository.findByNameContainingIgnoreCase(keyword,
-                pageable);
-
-        Page<TagDto> dtoPage = tagForProductsPage.map(tagMapper::fromTagForProductToDto);
+        
         GetAllTagsForProductsResponse response = new GetAllTagsForProductsResponse(dtoPage);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -244,6 +237,52 @@ public class TagService {
         GetAllStoreTagsListResponse response = new GetAllStoreTagsListResponse(dtos);
         
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    // --- NUEVOS MÉTODOS CRUD (Hallazgo #1) ---
+
+    @Transactional
+    public ResponseEntity<AssignTagResponse> updateTag(Long id, CreateTagRequest request) { // Reutilizamos request por simplicidad
+        TagEntity tag = tagRepository.findById(id).orElseThrow(() -> new TagsNotFound(
+            messageSource.getMessage("error.tag.not.found", new Object[]{id}, LocaleContextHolder.getLocale())));
+        
+        tag.setName(request.getName());
+        tagRepository.save(tag);
+        
+        return ResponseEntity.ok(new AssignTagResponse(messageSource.getMessage("tag.updated.success", null, LocaleContextHolder.getLocale())));
+    }
+
+    @Transactional
+    public ResponseEntity<AssignTagResponse> deleteTag(Long id) {
+        TagEntity tag = tagRepository.findById(id).orElseThrow(() -> new TagsNotFound(
+            messageSource.getMessage("error.tag.not.found", new Object[]{id}, LocaleContextHolder.getLocale())));
+        
+        tag.setDeletedAt(java.time.ZonedDateTime.now()); // Soft delete
+        tagRepository.save(tag);
+        
+        return ResponseEntity.ok(new AssignTagResponse(messageSource.getMessage("tag.deleted.success", null, LocaleContextHolder.getLocale())));
+    }
+
+    @Transactional
+    public ResponseEntity<AssignTagToProductResponse> updateTagToProduct(Long id, CreateTagForProductRequest request) {
+        TagForProductsEntity tag = tagForProductsRepository.findById(id).orElseThrow(() -> new TagsNotFound(
+            messageSource.getMessage("error.tag.not.found", new Object[]{id}, LocaleContextHolder.getLocale())));
+        
+        tag.setName(request.getName());
+        tagForProductsRepository.save(tag);
+        
+        return ResponseEntity.ok(new AssignTagToProductResponse(messageSource.getMessage("tag.for.products.updated", null, LocaleContextHolder.getLocale())));
+    }
+
+    @Transactional
+    public ResponseEntity<AssignTagToProductResponse> deleteTagToProduct(Long id) {
+        TagForProductsEntity tag = tagForProductsRepository.findById(id).orElseThrow(() -> new TagsNotFound(
+            messageSource.getMessage("error.tag.not.found", new Object[]{id}, LocaleContextHolder.getLocale())));
+        
+        tag.setDeletedAt(java.time.ZonedDateTime.now()); // Soft delete
+        tagForProductsRepository.save(tag);
+        
+        return ResponseEntity.ok(new AssignTagToProductResponse(messageSource.getMessage("tag.for.products.deleted", null, LocaleContextHolder.getLocale())));
     }
 
 }
