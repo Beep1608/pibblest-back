@@ -81,7 +81,10 @@ public class JwtService {
     }
 
     public boolean extractIsOwner(String token){
-        return extractAllClaims(token).get("isOwner", boolean.class);
+        Boolean isOwner = extractAllClaims(token).get("isOwner", Boolean.class);
+        
+        // Retornamos de forma segura haciendo el unboxing manual
+        return isOwner != null && isOwner;
     }
     
     public String extractUserId(String token){

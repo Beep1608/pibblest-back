@@ -7,7 +7,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 import org.springframework.context.MessageSource;
@@ -19,7 +21,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
 import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
+import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
 import com.nss.pibblest.modules.stores.internal.core.exceptions.StoreNotFound;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
@@ -30,6 +34,7 @@ import com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore.
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
+import com.nss.pibblest.modules.tags.api.dto.TagDto;
 import com.nss.pibblest.modules.tags.internal.core.exceptions.TagsNotFound;
 import com.nss.pibblest.modules.tags.internal.infrastructure.data.StoreTagEntity;
 import com.nss.pibblest.modules.tags.internal.infrastructure.data.StoreTagRepository;
@@ -55,7 +60,6 @@ public class StoreService {
     }
 
     public ResponseEntity<GetAllStoresResponse> getAllStores(Pageable pageable) {
-
         ZonedDateTime startOfToday = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
         Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfo(pageable, startOfToday);
         Locale locale = LocaleContextHolder.getLocale();
@@ -64,6 +68,41 @@ public class StoreService {
             String localizedTime = getLocalizedOperatingTime(dto.getCreatedAt(), locale);
             dto.setOperatinTime(localizedTime);
         });
+        GetAllStoresResponse response = new GetAllStoresResponse(storesPage);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    // Hallazgo #1: Obtener la lista simple de todas las tiendas (Id, Name)
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<StoreSimpleDto>> getAllStoresSimple() {
+        return ResponseEntity.ok(storeRepository.findAllSimpleStores());
+    }
+
+    // Hallazgo #2: Búsqueda segura por palabra clave y extracción de Tags
+    @Transactional(readOnly = true)
+    public ResponseEntity<GetAllStoresResponse> searchStores(String keyword, Pageable pageable) {
+        ZonedDateTime startOfToday = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfoByKeyword(pageable, startOfToday, keyword);
+        Locale locale = LocaleContextHolder.getLocale();
+
+        List<Long> storeIds = storesPage.getContent().stream().map(StorePreviewDto::getId).collect(Collectors.toList());
+
+        if (!storeIds.isEmpty()) {
+            List<StoreTagEntity> storeTags = storeTagRepository.findTagsByStoreIds(storeIds);
+            
+            Map<Long, List<TagDto>> tagsByStore = storeTags.stream()
+                    .collect(Collectors.groupingBy(
+                            st -> st.getStoreEntity().getId(),
+                            Collectors.mapping(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId()), Collectors.toList())
+                    ));
+
+            storesPage.forEach(dto -> {
+                dto.setTags(tagsByStore.getOrDefault(dto.getId(), new ArrayList<>()));
+                String localizedTime = getLocalizedOperatingTime(dto.getCreatedAt(), locale);
+                dto.setOperatinTime(localizedTime);
+            });
+        }
+
         GetAllStoresResponse response = new GetAllStoresResponse(storesPage);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -83,9 +122,12 @@ public class StoreService {
             newStoreEntity = storeRepository.save(newStoreEntity);
         }
 
+        // Hallazgo #3: Retorna el objeto DTO completo mapeado
+        StoreDto storeDto = storeMapper.toDto(newStoreEntity);
         String message = messageSource.getMessage("store.created.response", new Object[] { newStoreEntity.getName() },
                 LocaleContextHolder.getLocale());
-        CreateStoreResponse response = new CreateStoreResponse(message);
+        
+        CreateStoreResponse response = new CreateStoreResponse(message, storeDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -124,10 +166,12 @@ public class StoreService {
 
         storeRepository.save(storeEntity);
 
+        // Hallazgo #3: Retorna el objeto DTO completo mapeado
+        StoreDto storeDto = storeMapper.toDto(storeEntity);
         String successMessage = messageSource.getMessage("store.updated.success",
                 new Object[] { storeEntity.getName() }, locale);
 
-        UpdateStoreResponse response = new UpdateStoreResponse(successMessage);
+        UpdateStoreResponse response = new UpdateStoreResponse(successMessage, storeDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }

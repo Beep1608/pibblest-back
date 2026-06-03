@@ -4,8 +4,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Duration;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nss.pibblest.modules.tags.api.dto.TagDto;
 
 public class StorePreviewDto {
 
@@ -23,6 +26,9 @@ public class StorePreviewDto {
     private ZonedDateTime createdAt;
     private Double growthFromStart;
     private Long employees; 
+    
+    // Hallazgo #2: Se añaden los tags al preview
+    private List<TagDto> tags = new ArrayList<>();
 
     public StorePreviewDto(Long id, String name, String address, String status,
             Long totalProducts, Long currentQuantityOfProducts,
@@ -151,4 +157,11 @@ public class StorePreviewDto {
         return createdAt;
     }
 
+    public List<TagDto> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<TagDto> tags) {
+        this.tags = tags;
+    }
 }

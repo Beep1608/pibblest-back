@@ -22,15 +22,17 @@ public class TenantFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
     private final HandlerExceptionResolver exceptionResolver;
 
-    public TenantFilter(JwtService jwtService, @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
+    public TenantFilter(JwtService jwtService,
+            @Qualifier("handlerExceptionResolver") HandlerExceptionResolver exceptionResolver) {
         this.jwtService = jwtService;
         this.exceptionResolver = exceptionResolver;
     }
 
+
+
     @Override
     public void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws IOException, ServletException {
-
 
         String authHeader = request.getHeader("Authorization");
 
@@ -40,20 +42,18 @@ public class TenantFilter extends OncePerRequestFilter {
 
                 System.out.println("Token: " + token);
                 String schema = jwtService.extractOwner(token);
-          
-                System.out.println("Schema :"+schema);
+
+                System.out.println("Schema :" + schema);
                 TenantContext.setCurrentTenant(schema);
             }
             chain.doFilter(request, response);
-        }catch(ExpiredJwtException ex){
+        } catch (ExpiredJwtException ex) {
             exceptionResolver.resolveException(request, response, null, ex);
-        }finally {
+        } finally {
 
             TenantContext.clear();
         }
 
     }
-
-
 
 }
