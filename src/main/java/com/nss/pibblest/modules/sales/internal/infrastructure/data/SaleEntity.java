@@ -45,6 +45,9 @@ public class SaleEntity {
     @Column(name="updated_at")
     private ZonedDateTime updatedTime;
 
+    @Column(name="deleted_at")
+    private ZonedDateTime deletedAt;
+
     @OneToMany(mappedBy="sale", cascade= CascadeType.ALL, orphanRemoval=true)
     private List<SaleDetailEntity> details = new ArrayList<>();
 
@@ -128,6 +131,13 @@ public class SaleEntity {
         this.details = details;
     }
 
+    public ZonedDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(ZonedDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
 
     public void addDetail(SaleDetailEntity detail){
         details.add(detail);

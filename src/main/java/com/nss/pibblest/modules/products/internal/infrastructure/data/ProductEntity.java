@@ -60,6 +60,10 @@ public class ProductEntity {
     @Column(name = "updated_at")
     private ZonedDateTime updatedAt;
 
+    // NUEVO CAMPO: Para soportar el borrado suave
+    @Column(name = "deleted_at")
+    private ZonedDateTime deletedAt;
+
     @OneToMany(mappedBy="productEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     @BatchSize(size=20)
     private List<TagProductEntity> productTags = new ArrayList<>();
@@ -150,6 +154,14 @@ public class ProductEntity {
 
     public void setUpdatedAt(ZonedDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public ZonedDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(ZonedDateTime deletedAt) {
+        this.deletedAt = deletedAt;
     }
 
     public List<TagProductEntity> getProductTags() {

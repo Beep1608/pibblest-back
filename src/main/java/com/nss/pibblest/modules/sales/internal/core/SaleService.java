@@ -132,14 +132,14 @@ public class SaleService {
     }
 
     public ResponseEntity<GetSalesResponse> getSalesByStore(Long storeId, Pageable pageable) {
-        Page<SaleEntity> salesPage = saleRepository.findByStoreId(storeId, pageable);
+        Page<SaleEntity> salesPage = saleRepository.findByStoreIdAndDeletedAtIsNull(storeId, pageable);
         Page<SaleDto> dtoPage = salesPage.map(saleMapper::toDto);
         return ResponseEntity.status(HttpStatus.OK).body(new GetSalesResponse(dtoPage));
     }
 
     public ResponseEntity<SaleDto> getSaleById(Long id) {
         Locale locale = LocaleContextHolder.getLocale();
-        SaleEntity sale = saleRepository.findById(id)
+        SaleEntity sale = saleRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("sales.not.found", new Object[]{id}, locale)));
         return ResponseEntity.status(HttpStatus.OK).body(saleMapper.toDto(sale));
     }
@@ -147,7 +147,7 @@ public class SaleService {
     @Transactional
     public ResponseEntity<CancelSaleResponse> cancelSale(Long id) {
         Locale locale = LocaleContextHolder.getLocale();
-        SaleEntity sale = saleRepository.findById(id)
+        SaleEntity sale = saleRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("sales.not.found", new Object[]{id}, locale)));
 
         if ("CANCELLED".equalsIgnoreCase(sale.getStatus())) {

@@ -109,23 +109,12 @@ public class ProductService {
     public ResponseEntity<GetProductsFromStoreResponse> getAllProducts(String keyword, Pageable pageable) {
         Page<ProductEntity> products;
         if (keyword == null || keyword.trim().isEmpty()) {
-            products = productRespository.findAll(pageable);
+            products = productRespository.findByDeletedAtIsNull(pageable); // Usamos el nuevo método
         } else {
-            products = productRespository.findByNameContainingIgnoreCase(keyword, pageable);
+            products = productRespository.findByNameContainingIgnoreCaseAndDeletedAtIsNull(keyword, pageable); // Usamos el nuevo método
         }
 
-        Page<ProductPreviewDto> productsDto = products.map( p -> {
-            
-            ProductPreviewDto dto = productMapper.toPreviewDto(p);
-
-            if (p.getProductTags() != null) {
-                List<TagDto> tags = p.getProductTags().stream()
-                        .map(tagProduct -> tagMapper.fromTagForProductToDto(tagProduct.getTagForProductsEntity()))
-                        .collect(Collectors.toList());
-                dto.setTags(tags);
-            }
-            return dto;
-        });
+        Page<ProductPreviewDto> productsDto = products.map(productMapper::toPreviewDto);
         GetProductsFromStoreResponse response = new GetProductsFromStoreResponse(productsDto);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -143,27 +132,23 @@ public class ProductService {
 
     @Transactional
     public ResponseEntity<UpdateProductResponse> editProduct(Long id, UpdateProductRequest request) {
-        ProductEntity product = productRespository.findById(id)
+        // Usamos findByIdAndDeletedAtIsNull para que lance 404 si intenta editar algo borrado
+        ProductEntity product = productRespository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(ProductNotFoundException::new);
 
         productMapper.updateEntityFromRequest(request, product);
 
-        // Diffing algorithm para actualizar Tags asegurando orphan removal
         Set<Long> requestedTags = request.getTagsId() == null ? new HashSet<>() : request.getTagsId();
-        
         if (!requestedTags.isEmpty()) {
             validateTags(requestedTags);
         }
 
-        // 1. Eliminar tags desmarcados
         product.getProductTags().removeIf(tagProd -> !requestedTags.contains(tagProd.getTagForProductsEntity().getId()));
 
-        // 2. Encontrar qué tags ya están asociados para no duplicar inserciones
         Set<Long> existingTagIds = product.getProductTags().stream()
                 .map(tagProd -> tagProd.getTagForProductsEntity().getId())
                 .collect(Collectors.toSet());
 
-        // 3. Agregar los nuevos tags
         for (Long tagId : requestedTags) {
             if (!existingTagIds.contains(tagId)) {
                 TagForProductsEntity tag = tagForProductsRepository.getReferenceById(tagId);
@@ -172,7 +157,6 @@ public class ProductService {
         }
 
         product = productRespository.save(product);
-
         ProductPreviewDto dto = productMapper.toPreviewDto(product);
         UpdateProductResponse response = new UpdateProductResponse("product.updated.success", dto);
         
@@ -181,10 +165,13 @@ public class ProductService {
 
     @Transactional
     public ResponseEntity<DeleteProductResponse> deleteProduct(Long id) {
-        ProductEntity product = productRespository.findById(id)
+        // Exigimos que exista y no esté ya borrado
+        ProductEntity product = productRespository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(ProductNotFoundException::new);
 
-        productRespository.delete(product); // Eliminará cascada en products_tags gracias a CascadeType.ALL
+        // En lugar de productRespository.delete(product), hacemos:
+        product.setDeletedAt(java.time.ZonedDateTime.now());
+        productRespository.save(product);
 
         DeleteProductResponse response = new DeleteProductResponse("product.deleted.success");
         return ResponseEntity.status(HttpStatus.OK).body(response);
