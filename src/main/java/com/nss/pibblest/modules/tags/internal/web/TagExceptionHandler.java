@@ -10,9 +10,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.nss.pibblest.modules.tags.internal.core.exceptions.TagsNotFound;
 
-@RestControllerAdvice(basePackages={"com.nss.pibblest.modules.tags.internal.web"})
+@RestControllerAdvice(basePackages={
+    "com.nss.pibblest.modules.tags.internal.web",
+    "com.nss.pibblest.modules.products.internal.web",
+    "com.nss.pibblest.modules.stores.internal.web"
+})
 public class TagExceptionHandler {
-
 
     @ExceptionHandler(TagsNotFound.class)
     public ResponseEntity<Map<String, Object>> handleTagsNotFound(TagsNotFound ex){
@@ -24,6 +27,5 @@ public class TagExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
-    
 }
 

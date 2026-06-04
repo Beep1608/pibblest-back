@@ -114,9 +114,15 @@ public class TagService {
 
     }
 
-    public ResponseEntity<GetAllTagsResponse> getAllTags(Pageable pageable) {
-        // Usa la consulta optimizada (Hallazgo #3)
-        Page<TagDto> dtoPage = tagRepository.findAllWithUsageCount(pageable);
+    public ResponseEntity<GetAllTagsResponse> getAllTags(String keyword, Pageable pageable) {
+        Page<TagDto> dtoPage;
+        
+        if (keyword == null || keyword.trim().isEmpty()) {
+            dtoPage = tagRepository.findAllWithUsageCount(pageable);
+        } else {
+            dtoPage = tagRepository.findByNameWithUsageCountContainingIgnoreCase(keyword, pageable);
+        }
+        
         GetAllTagsResponse response = new GetAllTagsResponse(dtoPage);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
@@ -216,7 +222,8 @@ public class TagService {
     }
 
     public ResponseEntity<GetAllProductTagsListResponse> getAllProductTagsList() {
-        List<TagForProductsEntity> entities = tagForProductsRepository.findAll();
+        // Usamos el nuevo método en lugar de findAll()
+        List<TagForProductsEntity> entities = tagForProductsRepository.findByDeletedAtIsNull();
         
         List<TagForProductDto> dtos = entities.stream()
                 .map(tagMapper::toTagForProductDto)
@@ -228,7 +235,8 @@ public class TagService {
     }
 
     public ResponseEntity<GetAllStoreTagsListResponse> getAllStoreTagsList() {
-        List<TagEntity> entities = tagRepository.findAll();
+        // Usamos el nuevo método en lugar de findAll()
+        List<TagEntity> entities = tagRepository.findByDeletedAtIsNull();
         
         List<TagDto> dtos = entities.stream()
                 .map(tagMapper::toDto)

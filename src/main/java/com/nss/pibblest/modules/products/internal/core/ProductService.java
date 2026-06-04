@@ -131,10 +131,13 @@ public class ProductService {
     }
 
     public ResponseEntity<ProductPreviewDto> getProductById(Long id) {
-        ProductEntity product = productRespository.findById(id)
+        // Usamos el nuevo método findByIdWithTags en lugar de findById
+        ProductEntity product = productRespository.findByIdWithTags(id)
                 .orElseThrow(ProductNotFoundException::new);
         
+        // El mapper ahora rellenará automáticamente la lista 'tags' del DTO
         ProductPreviewDto dto = productMapper.toPreviewDto(product);
+        
         return ResponseEntity.status(HttpStatus.OK).body(dto);
     }
 

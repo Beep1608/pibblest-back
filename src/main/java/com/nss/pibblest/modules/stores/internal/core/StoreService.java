@@ -82,9 +82,14 @@ public class StoreService {
     @Transactional(readOnly = true)
     public ResponseEntity<GetAllStoresResponse> searchStores(String keyword, Pageable pageable) {
         ZonedDateTime startOfToday = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
-        Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfoByKeyword(pageable, startOfToday, keyword);
         Locale locale = LocaleContextHolder.getLocale();
 
+        // 1. Limpiamos la palabra de espacios accidentales y le agregamos los comodines '%' en Java
+        String safeKeyword = "%" + (keyword != null ? keyword.trim() : "") + "%";
+
+        // 2. Pasamos el safeKeyword a la consulta
+        Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfoByKeyword(pageable, startOfToday, safeKeyword);
+        
         List<Long> storeIds = storesPage.getContent().stream().map(StorePreviewDto::getId).collect(Collectors.toList());
 
         if (!storeIds.isEmpty()) {
@@ -93,7 +98,7 @@ public class StoreService {
             Map<Long, List<TagDto>> tagsByStore = storeTags.stream()
                     .collect(Collectors.groupingBy(
                             st -> st.getStoreEntity().getId(),
-                            Collectors.mapping(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId(),0L), Collectors.toList())
+                            Collectors.mapping(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId(), 0L), Collectors.toList())
                     ));
 
             storesPage.forEach(dto -> {

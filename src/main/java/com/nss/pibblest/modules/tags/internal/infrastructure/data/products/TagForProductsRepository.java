@@ -1,5 +1,7 @@
 package com.nss.pibblest.modules.tags.internal.infrastructure.data.products;
 
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +13,8 @@ import com.nss.pibblest.modules.tags.api.dto.TagDto;
 
 @Repository
 public interface TagForProductsRepository extends JpaRepository<TagForProductsEntity, Long> {
+    
+    List<TagForProductsEntity> findByDeletedAtIsNull();
     
     Page<TagForProductsEntity> findByNameContainingIgnoreCase(String name, Pageable pageable);
 

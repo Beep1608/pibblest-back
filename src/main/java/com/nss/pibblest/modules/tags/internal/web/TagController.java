@@ -68,9 +68,14 @@ public class TagController {
     }
 
     @GetMapping("/all")
-    @Operation(summary = "Listar Tags de Tiendas (Paginado)", description = "Devuelve el listado de tags de tiendas (excluyendo borrados lógicos) junto con la cantidad de veces que se ha usado cada uno.")
-    public ResponseEntity<GetAllTagsResponse> getAllTags(Pageable pageable) {
-        return tagService.getAllTags(pageable);
+    @Operation(
+        summary = "Listar/Buscar Tags de Tiendas (Paginado)", 
+        description = "Devuelve el listado de tags de tiendas (excluyendo borrados lógicos) junto con la cantidad de veces que se ha usado cada uno. Si se provee la 'keyword', filtrará por coincidencias en el nombre."
+    )
+    public ResponseEntity<GetAllTagsResponse> getAllTags(
+            @Parameter(description = "Palabra clave para filtrar por nombre (opcional)") @RequestParam(required = false) String keyword, 
+            Pageable pageable) {
+        return tagService.getAllTags(keyword, pageable);
     }
 
     @GetMapping("/stores/list")
