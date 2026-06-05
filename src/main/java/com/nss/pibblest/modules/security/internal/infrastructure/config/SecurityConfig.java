@@ -38,10 +38,14 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/login", "/api/owners/register",
-                                "/api/owners/verify", "/api/events/retry-incomplete",
-                                "/api/owners/resend-token")
-                        .permitAll()
+                        .requestMatchers(
+                                "/api/login", 
+                                "/api/owners/register",
+                                "/api/owners/verify", 
+                                "/api/events/retry-incomplete",
+                                "/api/owners/resend-token",
+                                "/api/employees/activate"
+                        ).permitAll()
                         .requestMatchers(
                                 "/api/swagger-ui/**", // Tu ruta personalizada en properties
                                 "/swagger-ui.html", // Ruta legacy de redirección

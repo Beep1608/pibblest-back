@@ -140,7 +140,7 @@ public class OwnerService {
                 ownerCreated.getSchemaName(), 
                 true, 
                 employeeEntity.getRole(), 
-                employeeEntity.getPermissions(),
+                java.util.List.of(),
                 ownerCreated.getOrganizationCode()
         );
         

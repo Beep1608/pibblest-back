@@ -204,5 +204,17 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_CONTENT).body(response);
     }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<Map<String, Object>> handleAccessDenied(org.springframework.security.access.AccessDeniedException ex) {
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.FORBIDDEN.value());
+        response.put("error", "Acceso Denegado");
+        // Nos dirá exactamente por qué falló (si fue nuestra validación o el @PreAuthorize)
+        response.put("message", ex.getMessage()); 
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    }
 }
 

@@ -1,5 +1,7 @@
 package com.nss.pibblest.modules.security.internal.core;
 
+import java.util.List;
+
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
@@ -70,8 +72,16 @@ public class SecurityService {
                 throw new EmployeeBadCredentials("error.employee.bad.credentials", null);
             }
 
-            // Identificamos si es dueño basándonos en el rol que tiene dentro de la tabla employees
+            // Identificamos si es dueño basándonos en el rol
             boolean isOwner = employeeEntity.getRole().name().equalsIgnoreCase("OWNER");
+
+            // Mapeo dinámico de permisos granulares a Strings (Ej: STORE_1_MODULE_SALES_READ)
+            List<String> authorityStrings = new java.util.ArrayList<>();
+            if (!isOwner && employeeEntity.getGranularPermissions() != null) {
+                authorityStrings = employeeEntity.getGranularPermissions().stream()
+                    .map(p -> "STORE_" + p.getStore().getId() + "_" + p.getModule().getCode() + "_" + p.getAction().toUpperCase())
+                    .collect(java.util.stream.Collectors.toList());
+            }
 
             // PASO 4: Generación de Tokens e inyección de contexto
             String token = jwtService.generateToken(
@@ -80,7 +90,7 @@ public class SecurityService {
                     schema, 
                     isOwner, 
                     employeeEntity.getRole(), 
-                    employeeEntity.getPermissions(), 
+                    authorityStrings, // Pasamos la nueva lista de strings
                     orgCode
             );
 

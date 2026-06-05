@@ -26,10 +26,15 @@ public class TenantAuthenticationHelper {
         EntityManager em = entityManagerFactory.createEntityManager();
         
         try {
-            // 2. Ejecutamos la consulta. Tu TenantConnectionProvider inyectará 
-            // el SET search_path TO "esquema_del_owner" correctamente.
+            // 2. Ejecutamos la consulta usando LEFT JOIN FETCH para evitar el LazyInitializationException
+            // y usamos DISTINCT para que no nos devuelva empleados duplicados en la lista.
+            // Además, validamos que no sea un empleado con borrado lógico (deletedAt IS NULL).
             List<EmployeeEntity> result = em.createQuery(
-                    "SELECT e FROM EmployeeEntity e WHERE e.username = :username", 
+                    "SELECT DISTINCT e FROM EmployeeEntity e " +
+                    "LEFT JOIN FETCH e.granularPermissions gp " +
+                    "LEFT JOIN FETCH gp.store " +
+                    "LEFT JOIN FETCH gp.module " +
+                    "WHERE e.username = :username AND e.deletedAt IS NULL", 
                     EmployeeEntity.class)
                     .setParameter("username", username)
                     .getResultList();
@@ -37,8 +42,7 @@ public class TenantAuthenticationHelper {
             return result.isEmpty() ? Optional.empty() : Optional.of(result.get(0));
             
         } finally {
-            // 3. Cerramos el EntityManager. Tu TenantConnectionProvider invocará 
-            // releaseConnection y hará el SET search_path TO identity, devolviendo la conexión limpia al pool.
+            // 3. Cerramos el EntityManager.
             em.close(); 
         }
     }

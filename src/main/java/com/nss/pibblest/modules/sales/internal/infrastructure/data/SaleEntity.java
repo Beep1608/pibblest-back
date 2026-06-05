@@ -48,6 +48,10 @@ public class SaleEntity {
     @Column(name="deleted_at")
     private ZonedDateTime deletedAt;
 
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "employee_id", nullable = false)
+    private com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity employee;
+
     @OneToMany(mappedBy="sale", cascade= CascadeType.ALL, orphanRemoval=true)
     private List<SaleDetailEntity> details = new ArrayList<>();
 
@@ -137,6 +141,14 @@ public class SaleEntity {
 
     public void setDeletedAt(ZonedDateTime deletedAt) {
         this.deletedAt = deletedAt;
+    }
+
+    public com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity getEmployee() {
+        return employee;
+    }
+
+    public void setEmployee(com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity employee) {
+        this.employee = employee;
     }
 
     public void addDetail(SaleDetailEntity detail){

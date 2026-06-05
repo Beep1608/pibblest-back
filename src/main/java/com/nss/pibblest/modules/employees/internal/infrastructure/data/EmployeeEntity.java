@@ -51,11 +51,9 @@ public class EmployeeEntity {
     @Column(name="role", nullable=false)
     private Role role = Role.EMPLOYEE;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name="employee_permissions", joinColumns=@JoinColumn(name="employee_id"))
-    @Enumerated(EnumType.STRING)
-    @Column(name="permission")
-    private Set<Permission> permissions = new HashSet<>();
+    // Nueva relación granular de permisos
+    @OneToMany(mappedBy="employee", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<EmployeePermissionEntity> granularPermissions = new ArrayList<>();
 
     @OneToMany(mappedBy="employee", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EmployeeStoreEntity> employeeStores = new ArrayList<>();
@@ -86,8 +84,8 @@ public class EmployeeEntity {
     public void setPassword(String password) { this.password = password; }
     public Role getRole() { return role; }
     public void setRole(Role role) { this.role = role; }
-    public Set<Permission> getPermissions() { return permissions; }
-    public void setPermissions(Set<Permission> permissions) { this.permissions = permissions; }
+    public List<EmployeePermissionEntity> getGranularPermissions() { return granularPermissions; }
+    public void setGranularPermissions(List<EmployeePermissionEntity> granularPermissions) { this.granularPermissions = granularPermissions; }
     public List<EmployeeStoreEntity> getEmployeeStores() { return employeeStores; }
     public void setEmployeeStores(List<EmployeeStoreEntity> employeeStores) { this.employeeStores = employeeStores; }
     public ZonedDateTime getCreatedAt() { return createdAt; }

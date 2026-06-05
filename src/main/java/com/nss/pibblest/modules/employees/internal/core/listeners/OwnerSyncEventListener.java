@@ -45,7 +45,6 @@ public class OwnerSyncEventListener {
                 ownerEmployee.setUsername(event.email());
                 ownerEmployee.setPassword(event.encodedPassword());
                 ownerEmployee.setRole(Role.OWNER);
-                ownerEmployee.setPermissions(Set.of(Permission.values()));
                 
                 employeeRepository.save(ownerEmployee);
             });

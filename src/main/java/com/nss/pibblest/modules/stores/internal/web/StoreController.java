@@ -48,6 +48,7 @@ public class StoreController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(
         summary = "Obtener todas las tiendas (Paginado)", 
         description = "Retorna un listado paginado de todas las tiendas con su información de previsualización y KPIs calculados al día de hoy."
@@ -89,51 +90,53 @@ public class StoreController {
     }
 
     @PostMapping("/create")
+    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
     @Operation(
-        summary = "Crear nueva tienda", 
-        description = "Crea una nueva tienda en el sistema. Opcionalmente recibe una lista de IDs de tags para asociarlos inmediatamente."
+        summary = "Crear una nueva tienda", 
+        description = "Registra una sucursal en el sistema de la organización. Operación exclusiva para el rol OWNER."
     )
     @ApiResponses({
         @ApiResponse(responseCode = "201", description = "Tienda creada exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Errores de validación en los datos de entrada"),
-        @ApiResponse(responseCode = "404", description = "Alguno de los Tags proporcionados no existe")
+        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)")
     })
-    public ResponseEntity<CreateStoreResponse> createStore(@Valid @RequestBody CreateStoreRequest request){
+    public ResponseEntity<CreateStoreResponse> createStore(@Valid @RequestBody CreateStoreRequest request) {
         return storeService.createStore(request);
     }
 
     @PutMapping("/edit/{id}")
+    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
     @Operation(
-        summary = "Actualizar tienda", 
-        description = "Actualiza los datos básicos de la tienda y sincroniza sus tags (agrega nuevos y elimina los omitidos)."
+        summary = "Actualizar información de una tienda", 
+        description = "Modifica los datos y sincroniza los tags de una tienda existente. Operación exclusiva para el rol OWNER."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Tienda actualizada exitosamente"),
-        @ApiResponse(responseCode = "404", description = "Tienda o Tags no encontrados")
+        @ApiResponse(responseCode = "200", description = "Tienda actualizada correctamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)"),
+        @ApiResponse(responseCode = "404", description = "Tienda no encontrada")
     })
-    public ResponseEntity<UpdateStoreResponse> updateStore (
-            @Parameter(description = "ID de la tienda a actualizar", example = "1") 
+    public ResponseEntity<UpdateStoreResponse> updateStore(
             @PathVariable("id") Long id, 
-            @Valid @RequestBody UpdateStoreRequest request){
+            @Valid @RequestBody UpdateStoreRequest request) {
         return storeService.updateStore(id, request);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
     @Operation(
-        summary = "Eliminar tienda", 
-        description = "Realiza un borrado lógico (soft delete) de la tienda especificada y elimina físicamente (hard delete) sus relaciones en la tabla de tags."
+        summary = "Eliminar una tienda (Soft Delete)", 
+        description = "Marca la tienda como eliminada de forma lógica y remueve sus relaciones huérfanas. Operación exclusiva para el rol OWNER."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Tienda eliminada exitosamente"),
+        @ApiResponse(responseCode = "200", description = "Tienda eliminada correctamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)"),
         @ApiResponse(responseCode = "404", description = "Tienda no encontrada")
     })
-    public ResponseEntity<DeleteStoreResponse> deleteStore(
-            @Parameter(description = "ID de la tienda a eliminar", example = "1") 
-            @PathVariable("id") Long id) {
+    public ResponseEntity<DeleteStoreResponse> deleteStore(@PathVariable("id") Long id) {
         return storeService.deleteStore(id);
     }
 
     @PostMapping("/assign")
+    @PreAuthorize("hasRole('OWNER')")
     @Operation(
         summary = "Asignar producto a tienda", 
         description = "Transfiere un producto existente del inventario global hacia una tienda específica estableciendo una cantidad inicial/deseada."

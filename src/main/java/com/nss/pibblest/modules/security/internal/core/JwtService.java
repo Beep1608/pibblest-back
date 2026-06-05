@@ -32,12 +32,12 @@ public class JwtService {
     private long jwtExpiration;
 
     // Sobrecarga para mantener compatibilidad con el método original de 6 parámetros
-    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions) {
+    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, List<String> permissions) {
         return generateToken(employeeId, username, schema_name, isOwner, role, permissions, null);
     }
 
     // Se agrega organizationCode a los parámetros
-    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, Set<Permission> permissions, String organizationCode){
+    public String generateToken(UUID employeeId, String username, String schema_name, boolean isOwner, Role role, List<String> permissions, String organizationCode){
 
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("employeeId", employeeId);
@@ -54,7 +54,7 @@ public class JwtService {
         
         extraClaims.put("isOwner", isOwner);
         extraClaims.put("role", role.name());
-        extraClaims.put("permissions", permissions.stream().map(Permission::name).collect(Collectors.toList()));
+        extraClaims.put("permissions", permissions);
 
         String tokenId = UUID.randomUUID().toString();
 
@@ -103,6 +103,31 @@ public class JwtService {
     @SuppressWarnings("unchecked")
     public List<String> extractPermissions(String token) {
         return extractAllClaims(token).get("permissions", List.class);
+    }
+
+    // Genera un token exclusivo para la activación (Expira en 48 horas)
+    public String generateActivationToken(UUID employeeId) {
+        long activationExpiration = 1000L * 60 * 60 * 48; // 48 horas en milisegundos
+        
+        return Jwts.builder()
+                .claim("type", "ACTIVATION") // Sello de seguridad para diferenciarlo del token de login
+                .subject(employeeId.toString())
+                .issuedAt(new Date(System.currentTimeMillis()))
+                .expiration(new Date(System.currentTimeMillis() + activationExpiration))
+                .signWith(getSignInKey(), Jwts.SIG.HS256)
+                .compact();
+    }
+
+    // Extrae y valida que sea un token de activación legítimo
+    public UUID extractEmployeeIdFromActivationToken(String token) {
+        Claims claims = extractAllClaims(token);
+        String type = claims.get("type", String.class);
+        
+        if (!"ACTIVATION".equals(type)) {
+            throw new IllegalArgumentException("Token de activación inválido");
+        }
+        
+        return UUID.fromString(claims.getSubject());
     }
 
     public boolean isTokenValid(String token, String username){
