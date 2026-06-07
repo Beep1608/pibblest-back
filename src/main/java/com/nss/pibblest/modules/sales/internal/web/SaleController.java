@@ -41,13 +41,14 @@ public class SaleController {
     @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
     @io.swagger.v3.oas.annotations.Operation(
         summary = "Obtener ventas de una tienda", 
-        description = "Permite listar las ventas. Un empleado común solo verá las suyas ('PERSONAL'). Si tiene permisos de lectura, podrá enviar '?scope=ALL' para ver todo el historial de la tienda."
+        description = "Permite listar las ventas. Si se usa scope=ALL y el usuario tiene permisos de lectura, puede enviar opcionalmente un employeeId para filtrar las ventas de un usuario específico."
     )
     public ResponseEntity<GetSalesResponse> getSalesByStore(
             @PathVariable("storeId") Long storeId, 
             @org.springframework.web.bind.annotation.RequestParam(value = "scope", defaultValue = "PERSONAL") String scope,
+            @org.springframework.web.bind.annotation.RequestParam(value = "employeeId", required = false) java.util.UUID targetEmployeeId,
             Pageable pageable) {
-        return saleService.getSalesByStore(storeId, scope, pageable);
+        return saleService.getSalesByStore(storeId, scope, targetEmployeeId, pageable);
     }
 
     @GetMapping("/{id}")
