@@ -22,17 +22,16 @@ import com.nss.pibblest.modules.employees.internal.web.requests.getAllEmployees.
 import com.nss.pibblest.modules.employees.internal.web.requests.updateEmployee.UpdateEmployeeRequest;
 import com.nss.pibblest.modules.employees.internal.web.requests.updateEmployee.UpdateEmployeeResponse;
 import com.nss.pibblest.modules.employees.internal.web.requests.updateEmployee.ActivateEmployeeRequest;
+import com.nss.pibblest.modules.employees.internal.web.requests.updateEmployee.ActivateEmployeeResponse;
+import com.nss.pibblest.modules.employees.internal.web.requests.updateEmployee.ResendActivationResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/employees")
-@Tag(name = "Empleados", description = "Endpoints para la gestión del personal, asignación de tiendas y control de permisos granulares por módulo.")
+@Tag(name = "Empleados", description = "Endpoints para la gestión del personal y permisos granulares.")
 public class EmployeeController {
     
     private final EmployeeService employeeService;
@@ -42,90 +41,55 @@ public class EmployeeController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('OWNER') or hasAuthority('CAN_SEE')")
-    @Operation(
-        summary = "Listar empleados (Paginado)", 
-        description = "Obtiene una lista paginada de todos los empleados activos en la organización (excluye registros con borrado lógico)."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listado de empleados devuelto exitosamente"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Requiere rol OWNER o autoridad CAN_SEE)")
-    })
-    public ResponseEntity<GetAllEmployeesResponse> getAllEmployees(
-            @Parameter(description = "Parámetros de paginación (page, size, sort)") Pageable pageable) {
+    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
+    @Operation(summary = "Listar empleados (Paginado)")
+    public ResponseEntity<GetAllEmployeesResponse> getAllEmployees(Pageable pageable) {
         return employeeService.getAllEmployees(pageable);
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER') or hasAuthority('CAN_READ')")
-    @Operation(
-        summary = "Obtener detalle de empleado", 
-        description = "Devuelve los detalles de un empleado en específico, incluyendo la lista de tiendas asignadas y sus permisos granulares detallados."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Detalles del empleado obtenidos correctamente"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Requiere rol OWNER o autoridad CAN_READ)"),
-        @ApiResponse(responseCode = "404", description = "Empleado no encontrado")
-    })
-    public ResponseEntity<EmployeeDto> getEmployeeById(
-            @Parameter(description = "UUID único del empleado a consultar") @PathVariable("id") UUID id) {
+    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
+    @Operation(summary = "Obtener detalle de empleado")
+    public ResponseEntity<EmployeeDto> getEmployeeById(@PathVariable("id") UUID id) {
         return employeeService.getEmployeeById(id);
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')") // Permite el ingreso para la evaluación dinámica en el servicio
-    @Operation(
-        summary = "Crear nuevo empleado", 
-        description = "Registra un nuevo empleado en el sistema. Si la operación es realizada por un empleado administrativo, se validará que tenga permisos de creación en cada tienda asignada."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Empleado creado exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Error de validación o tienda no encontrada"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (No tienes permisos en alguna de las tiendas)")
-    })
-    public ResponseEntity<CreateEmployeeResponse> createEmployee(
-            @Valid @RequestBody CreateEmployeeRequest request){
+    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
+    @Operation(summary = "Crear nuevo empleado")
+    public ResponseEntity<CreateEmployeeResponse> createEmployee(@Valid @RequestBody CreateEmployeeRequest request){
         return employeeService.createEmployee(request);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER') or hasAuthority('CAN_EDIT')")
-    @Operation(
-        summary = "Editar empleado", 
-        description = "Actualiza la información personal de un empleado y sincroniza (crea, actualiza o elimina) su asignación a tiendas y permisos de módulos en base a la matriz proporcionada."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Empleado actualizado exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Error de validación en los datos enviados"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Requiere rol OWNER o autoridad CAN_EDIT)"),
-        @ApiResponse(responseCode = "404", description = "Empleado no encontrado")
-    })
+    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
+    @Operation(summary = "Editar empleado")
     public ResponseEntity<UpdateEmployeeResponse> editEmployee(
-           @Parameter(description = "UUID único del empleado a editar") @PathVariable("id") UUID id, 
+           @PathVariable("id") UUID id, 
            @Valid @RequestBody UpdateEmployeeRequest request) {
             return employeeService.editEmployee(id, request);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER') or hasAuthority('CAN_DELETE')")
-    @Operation(
-        summary = "Eliminar empleado (Soft Delete)", 
-        description = "Realiza un borrado lógico del empleado y desactiva todas sus relaciones con las tiendas, revocando así su acceso al sistema sin perder historial."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Empleado eliminado correctamente (Sin contenido)"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Requiere rol OWNER o autoridad CAN_DELETE)"),
-        @ApiResponse(responseCode = "404", description = "Empleado no encontrado")
-    })
-    public ResponseEntity<Void> deleteEmployee(
-            @Parameter(description = "UUID único del empleado a eliminar") @PathVariable("id") UUID id) {
+    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
+    @Operation(summary = "Eliminar empleado (Soft Delete)")
+    public ResponseEntity<Void> deleteEmployee(@PathVariable("id") UUID id) {
         return employeeService.deleteEmployee(id);
     }
 
     @PostMapping("/activate")
-    // OJO: No lleva @PreAuthorize porque es un endpoint público
-    @Operation(summary = "Activar cuenta de empleado", description = "Recibe el token de activación y establece la contraseña definitiva del empleado.")
-    public ResponseEntity<Void> activateAccount(@Valid @RequestBody ActivateEmployeeRequest request) {
+    @Operation(summary = "Activar cuenta de empleado", description = "Recibe el token de activación, establece la contraseña definitiva del empleado y confirma el éxito de la operación.")
+    public ResponseEntity<ActivateEmployeeResponse> activateAccount(@Valid @RequestBody ActivateEmployeeRequest request) {
         return employeeService.activateEmployeeAccount(request.getToken(), request.getNewPassword());
+    }
+
+    @PostMapping("/{id}/resend-activation")
+    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
+    @Operation(
+        summary = "Reenviar enlace de activación", 
+        description = "Genera un nuevo token de 5 minutos y devuelve un nuevo enlace de activación para un empleado existente."
+    )
+    public ResponseEntity<ResendActivationResponse> resendActivation(@PathVariable("id") UUID id) {
+        return employeeService.resendActivationToken(id);
     }
 }

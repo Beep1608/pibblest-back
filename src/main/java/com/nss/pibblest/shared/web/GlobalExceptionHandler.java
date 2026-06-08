@@ -216,5 +216,15 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
     }
+
+    @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
+    public org.springframework.http.ResponseEntity<java.util.Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        response.put("status", org.springframework.http.HttpStatus.BAD_REQUEST.value());
+        response.put("error", "Petición Incorrecta");
+        response.put("message", ex.getMessage()); 
+
+        return org.springframework.http.ResponseEntity.status(org.springframework.http.HttpStatus.BAD_REQUEST).body(response);
+    }
 }
 

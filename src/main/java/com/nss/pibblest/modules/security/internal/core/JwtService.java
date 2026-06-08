@@ -105,17 +105,24 @@ public class JwtService {
         return extractAllClaims(token).get("permissions", List.class);
     }
 
-    // Genera un token exclusivo para la activación (Expira en 48 horas)
-    public String generateActivationToken(UUID employeeId) {
-        long activationExpiration = 1000L * 60 * 60 * 48; // 48 horas en milisegundos
+    // Genera un token exclusivo para la activación (Expira en 5 minutos)
+    public String generateActivationToken(UUID employeeId, String tenantId) {
+        long activationExpiration = 1000L * 60 * 5; // 5 minutos en milisegundos
         
         return Jwts.builder()
-                .claim("type", "ACTIVATION") // Sello de seguridad para diferenciarlo del token de login
+                .claim("type", "ACTIVATION") 
+                .claim("tenant", tenantId) // <-- INYECTAMOS EL ESQUEMA EN EL TOKEN
                 .subject(employeeId.toString())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + activationExpiration))
                 .signWith(getSignInKey(), Jwts.SIG.HS256)
                 .compact();
+    }
+
+    // Nuevo método para extraer el Tenant
+    public String extractTenantFromActivationToken(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("tenant", String.class);
     }
 
     // Extrae y valida que sea un token de activación legítimo

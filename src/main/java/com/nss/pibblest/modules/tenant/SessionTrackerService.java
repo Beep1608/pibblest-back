@@ -53,4 +53,16 @@ public class SessionTrackerService {
         Boolean exists = redisTemplate.hasKey(redisKey);
         return exists != null && exists;
     }
+
+    /**
+     * Invalida todas las sesiones de un usuario de forma inmediata buscando
+     * llaves activas que terminen con el ID del usuario en Redis.
+     */
+    public void invalidateUserSession(String userId) {
+        String pattern = "active_sessions:*" + userId;
+        java.util.Set<String> keys = redisTemplate.keys(pattern);
+        if (keys != null && !keys.isEmpty()) {
+            redisTemplate.delete(keys);
+        }
+    }
 }
