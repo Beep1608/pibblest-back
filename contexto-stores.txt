@@ -1,0 +1,1786 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: src/main/java/com/nss/pibblest/modules/stores/**/*.java
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+src/main/java/com/nss/pibblest/modules/stores/api/dtos/StoreDto.java
+src/main/java/com/nss/pibblest/modules/stores/api/dtos/StorePreviewDto.java
+src/main/java/com/nss/pibblest/modules/stores/api/dtos/StoreSimpleDto.java
+src/main/java/com/nss/pibblest/modules/stores/internal/core/exceptions/StoreNotFound.java
+src/main/java/com/nss/pibblest/modules/stores/internal/core/kafka/consumers/StoreKafkaConsumer.java
+src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreProductService.java
+src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreService.java
+src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreSseService.java
+src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreEntity.java
+src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreProductEntity.java
+src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreProductId.java
+src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreProductRepository.java
+src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreRepository.java
+src/main/java/com/nss/pibblest/modules/stores/internal/mappers/StoreMapper.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/storeProducts/asignProductToStore/AsignStoreProductToStoreRequest.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/storeProducts/asignProductToStore/AsignStoreProductToStoreResponse.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/createStore/CreateStoreRequest.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/createStore/CreateStoreResponse.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/deleteStore/DeleteStoreResponse.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/getAllStores/GetAllStoresRequest.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/getAllStores/GetAllStoresResponse.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/updateStore/UpdateStoreRequest.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/updateStore/UpdateStoreResponse.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/StoreController.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/StoreExceptionHandler.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/StoreSseController.java
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/api/dtos/StoreSimpleDto.java">
+package com.nss.pibblest.modules.stores.api.dtos;
+
+public record StoreSimpleDto(
+    Long id,
+    String name
+) {}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/core/exceptions/StoreNotFound.java">
+package com.nss.pibblest.modules.stores.internal.core.exceptions;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public class StoreNotFound extends RuntimeException {
+    
+    private String message;
+
+    public StoreNotFound (String message){
+        super(message);
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreProductId.java">
+package com.nss.pibblest.modules.stores.internal.infrastructure.data;
+
+import java.io.Serializable;
+import java.util.Objects;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
+
+
+@Embeddable
+public class StoreProductId implements  Serializable {
+
+    @Column(name="store_id")
+    private Long store_id;
+
+    @Column(name="product_id")
+    private Long product_id;
+
+
+    public StoreProductId(Long store_id, Long product_id) {
+        this.store_id = store_id;
+        this.product_id = product_id;
+    }
+
+    public StoreProductId() {
+    }
+    
+    @Override
+    public boolean equals(Object o){
+        if (this == o) return true;
+        if  ( o == null || getClass() != o.getClass()) return false;
+
+        StoreProductId that = (StoreProductId) o;
+        return Objects.equals(store_id, that.getStore_id()) &&
+                Objects.equals(product_id, that.getProduct_id());
+    }
+        @Override
+    public int hashCode(){
+        return Objects.hash(store_id, product_id);
+    }
+
+
+
+    public Long getStore_id() {
+        return store_id;
+    }
+
+
+    public void setStore_id(Long store_id) {
+        this.store_id = store_id;
+    }
+
+
+    public Long getProduct_id() {
+        return product_id;
+    }
+
+
+    public void setProduct_id(Long product_id) {
+        this.product_id = product_id;
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/storeProducts/asignProductToStore/AsignStoreProductToStoreRequest.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+
+public class AsignStoreProductToStoreRequest {
+    @NotNull(message = "No puede ser nulo")
+    private Long storeId;
+     @NotNull(message = "No puede ser nulo")
+    private Long productId;
+
+    @NotNull(message = "No puede ser nulo")
+    @Positive(message = "La cantidad no puede ser negativa")
+    private Long quantity;
+    public Long getStoreId() {
+        return storeId;
+    }
+    public void setStoreId(Long storeId) {
+        this.storeId = storeId;
+    }
+    public Long getProductId() {
+        return productId;
+    }
+    public void setProductId(Long productId) {
+        this.productId = productId;
+    }
+    public Long getQuantity() {
+        return quantity;
+    }
+    public void setQuantity(Long quantity) {
+        this.quantity = quantity;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/storeProducts/asignProductToStore/AsignStoreProductToStoreResponse.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore;
+
+public class AsignStoreProductToStoreResponse {
+    private String message ;
+
+    public AsignStoreProductToStoreResponse(String message){
+        this.message = message;
+    }
+    public AsignStoreProductToStoreResponse(){}
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/deleteStore/DeleteStoreResponse.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore;
+
+public class DeleteStoreResponse {
+    private String message;
+
+    public DeleteStoreResponse(String message) {
+        this.message = message;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/getAllStores/GetAllStoresRequest.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores;
+
+public class GetAllStoresRequest {
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/getAllStores/GetAllStoresResponse.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
+
+public class GetAllStoresResponse {
+
+    private List<StorePreviewDto> stores;
+
+    private int pageNo;
+    private int pageSize;
+    private long totalElements;
+    private int totalPages;
+    private boolean last;
+
+    public GetAllStoresResponse(Page<StorePreviewDto> page) {
+        this.stores = page.getContent();
+        this.pageNo = page.getNumber();
+        this.pageSize = page.getSize();
+        this.totalElements = page.getTotalElements();
+        this.totalPages = page.getTotalPages();
+        this.last = page.isLast();
+    }
+
+    public List<StorePreviewDto> getStores() {
+        return stores;
+    }
+
+    public void setStores(List<StorePreviewDto> stores) {
+        this.stores = stores;
+    }
+
+    public int getPageNo() {
+        return pageNo;
+    }
+
+    public void setPageNo(int pageNo) {
+        this.pageNo = pageNo;
+    }
+
+    public int getPageSize() {
+        return pageSize;
+    }
+
+    public void setPageSize(int pageSize) {
+        this.pageSize = pageSize;
+    }
+
+    public long getTotalElements() {
+        return totalElements;
+    }
+
+    public void setTotalElements(long totalElements) {
+        this.totalElements = totalElements;
+    }
+
+    public int getTotalPages() {
+        return totalPages;
+    }
+
+    public void setTotalPages(int totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public boolean isLast() {
+        return last;
+    }
+
+    public void setLast(boolean last) {
+        this.last = last;
+    }
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/StoreExceptionHandler.java">
+package com.nss.pibblest.modules.stores.internal.web;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import com.nss.pibblest.modules.stores.internal.core.exceptions.StoreNotFound;
+
+@RestControllerAdvice(basePackages={"com.nss.pibblest.modules.stores.internal.web","com.nss.pibblest.modules.tags.internal.web"})
+public class StoreExceptionHandler {
+
+
+
+    @ExceptionHandler(StoreNotFound.class)
+    public ResponseEntity<Map<String, Object>> handleStoreNotFound(StoreNotFound ex){
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("status", HttpStatus.NOT_FOUND.value());
+        response.put("message", ex.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/api/dtos/StoreDto.java">
+package com.nss.pibblest.modules.stores.api.dtos;
+
+import java.util.List;
+import com.nss.pibblest.modules.tags.api.dto.TagDto;
+
+public record StoreDto(
+    Long id,
+    String name,
+    String address,
+    String status,
+    String createdAt,
+    List<TagDto> tags
+){}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/core/kafka/consumers/StoreKafkaConsumer.java">
+package com.nss.pibblest.modules.stores.internal.core.kafka.consumers;
+
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.stereotype.Component;
+
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
+import com.nss.pibblest.modules.stores.internal.core.StoreSseService;
+
+@Component
+public class StoreKafkaConsumer {
+    private final StoreSseService storeSseService;
+
+    public StoreKafkaConsumer(StoreSseService storeSseService){
+        this.storeSseService =storeSseService;
+    }
+
+    @KafkaListener(
+        topics="store-realtime-updates",
+        groupId="sse-node-#{T(java.util.UUID).randomUUID().toString()}"
+    )
+    public void consumeStoreUpdate(@Payload StorePreviewDto updateStore, @Header("userId") String userId){
+        if(userId != null){
+            storeSseService.broadcastStoreUpdate(userId, updateStore);
+        }else{
+            System.out.println("Vacioooo");
+        }
+        
+    }
+    
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreProductService.java">
+package com.nss.pibblest.modules.stores.internal.core;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductEntity;
+import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductRespository;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductEntity;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductId;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductRepository;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
+import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreResponse;
+import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
+
+import jakarta.transaction.Transactional;
+
+@Service
+public class StoreProductService {
+
+    private final StoreProductRepository storeProductRepository;
+    private final StoreRepository storeRepository;
+    private final ProductRespository productRespository;
+
+    public StoreProductService(StoreProductRepository storeProductRepository,
+        StoreRepository storeRepository, ProductRespository productRespository
+    ){
+        this.storeProductRepository = storeProductRepository;
+        this.storeRepository = storeRepository;
+        this.productRespository = productRespository;
+    }
+
+    @Transactional
+    public ResponseEntity<AsignStoreProductToStoreResponse> assignProductToStore(AsignStoreProductToStoreRequest request){
+
+        ProductEntity productEntity = productRespository.findById(request.getProductId())
+        .orElseThrow(() -> new EntityNotFoundException("No se encontró el producto con id: "+ request.getProductId()));
+
+        StoreEntity storeEntity = storeRepository.findById(request.getStoreId())
+        .orElseThrow(() -> new EntityNotFoundException("No se encontró la tienda con id: "+ request.getStoreId()));
+
+        if(productEntity.getQuantity() < request.getQuantity()){
+            throw new IllegalStateException("El stock es menor a la cantidad que se queire asignar");
+        }
+
+        productEntity.setQuantity(productEntity.getQuantity() - request.getQuantity());
+        productRespository.save(productEntity);
+
+        StoreProductId storeProductId = new StoreProductId(request.getStoreId(), request.getProductId());
+
+        StoreProductEntity storeProductEntity = storeProductRepository.findById(storeProductId)
+        .orElseGet(() -> {
+            StoreProductEntity newStoreProductEntity = new StoreProductEntity();
+            newStoreProductEntity.setId(storeProductId);
+            
+        
+
+            newStoreProductEntity.setProduct(productEntity);
+            newStoreProductEntity.setStore(storeEntity);
+            newStoreProductEntity.setDesiredQuantity(request.getQuantity());
+            return newStoreProductEntity;
+        });
+
+        storeProductEntity.setDesiredQuantity(request.getQuantity());
+        storeProductEntity.setCurrentQuantity(request.getQuantity());
+        storeProductEntity.setIsActive(true);
+
+        storeProductRepository.save(storeProductEntity);
+
+        AsignStoreProductToStoreResponse response = new AsignStoreProductToStoreResponse("Se asigno correctamente");
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+
+    }
+
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreSseService.java">
+package com.nss.pibblest.modules.stores.internal.core;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
+
+@Service
+public class StoreSseService {
+
+    private final Map<String, List<SseEmitter>> userEmitters = new ConcurrentHashMap<>();
+
+    public SseEmitter suscribe(String userId) {
+        SseEmitter emitter = new SseEmitter(1800000L);
+
+        System.out.println("Id del token: "+ userId);
+        userEmitters.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(emitter);
+
+        emitter.onCompletion(() -> removeEmitter(userId, emitter));
+        emitter.onTimeout(() -> removeEmitter(userId, emitter));
+        emitter.onError(e -> removeEmitter(userId, emitter));
+
+        try{
+            emitter.send(SseEmitter.event().name("INIT").data("SSE Conectado"));
+
+        }catch(IOException e){
+            removeEmitter(userId, emitter);
+        }
+
+        return emitter;
+    }
+
+    public void broadcastStoreUpdate(String userId, StorePreviewDto updateStore) {
+        List<SseEmitter> emitters = userEmitters.get(userId);
+
+        if (emitters != null) {
+            for (SseEmitter emitter : emitters) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name("STORE_UPDATE")
+                            .data(updateStore));
+                } catch (IOException e) {
+                    emitter.complete();
+                    removeEmitter(userId, emitter);
+                }
+            }
+        }
+    }
+
+    private void removeEmitter(String username, SseEmitter emitter) {
+        List<SseEmitter> emitters = userEmitters.get(username);
+        if (emitters != null) {
+            emitters.remove(emitter);
+            if (emitters.isEmpty()) {
+                userEmitters.remove(username);
+            }
+        }
+    }
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreEntity.java">
+package com.nss.pibblest.modules.stores.internal.infrastructure.data;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.nss.pibblest.modules.tags.internal.infrastructure.data.StoreTagEntity;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name="stores")
+public class StoreEntity {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(name = "name")
+    private String name;
+
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "status")
+    private String status;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private ZonedDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private ZonedDateTime updatedAt;
+    
+    @Column(name="deleted_at")
+    private ZonedDateTime deletedAt;
+
+    @OneToMany(mappedBy="storeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<StoreTagEntity> storeTags = new ArrayList<>();
+
+    public ZonedDateTime getDeletedAt() {
+        return deletedAt;
+    }
+
+    public void setDeletedAt(ZonedDateTime deletedAt) {
+        this.deletedAt = deletedAt;
+    }
+
+    public ZonedDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(ZonedDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public List<StoreTagEntity> getStoreTags() {
+        return storeTags;
+    }
+
+    public void setStoreTags(List<StoreTagEntity> storeTags) {
+        this.storeTags = storeTags;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/createStore/CreateStoreResponse.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore;
+
+import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
+
+public class CreateStoreResponse {
+    private String message;
+    private StoreDto store;
+
+    public CreateStoreResponse(String message, StoreDto store){
+        this.message = message;
+        this.store = store;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public StoreDto getStore() {
+        return store;
+    }
+
+    public void setStore(StoreDto store) {
+        this.store = store;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/updateStore/UpdateStoreRequest.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.updateStore;
+
+import java.util.Set;
+
+public class UpdateStoreRequest {
+
+    private String name;
+    private String address;
+    private String status;
+    private Set<Long> tagsId;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Set<Long> getTagsId() {
+        return tagsId;
+    }
+
+    public void setTagsId(Set<Long> tagsId) {
+        this.tagsId = tagsId;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/updateStore/UpdateStoreResponse.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.updateStore;
+
+import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
+
+public class UpdateStoreResponse {
+    
+    private String message;
+    private StoreDto store;
+
+    public UpdateStoreResponse(String message, StoreDto store){
+        this.message = message;
+        this.store = store;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public StoreDto getStore() {
+        return store;
+    }
+
+    public void setStore(StoreDto store) {
+        this.store = store;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/StoreSseController.java">
+package com.nss.pibblest.modules.stores.internal.web;
+
+import org.springframework.http.MediaType;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+
+import com.nss.pibblest.modules.stores.internal.core.StoreSseService;
+
+@RestController
+@RequestMapping("/api/stores/stream")
+public class StoreSseController {
+    
+    private final StoreSseService storeSseService;
+
+    public StoreSseController(StoreSseService storeSseService){
+        this.storeSseService = storeSseService;
+    }
+
+    @GetMapping(value="/storePreview", produces= MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter stream(){
+        String userId = (String)(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        return storeSseService.suscribe(userId);
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreProductEntity.java">
+package com.nss.pibblest.modules.stores.internal.infrastructure.data;
+
+import java.time.ZonedDateTime;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductEntity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name="stores_products" )
+public class StoreProductEntity {
+    @EmbeddedId
+    private StoreProductId id = new StoreProductId();
+
+
+    @ManyToOne(fetch=FetchType.LAZY)
+    @MapsId("store_id")
+    @JoinColumn(name="store_id")
+    private StoreEntity store;
+
+
+    @ManyToOne(fetch=FetchType.LAZY)
+    @MapsId("product_id")
+    @JoinColumn(name="product_id")
+    private ProductEntity product;
+
+    @Column(name="desired_quantity")
+    private Long desiredQuantity;
+
+
+
+    @Column(name="current_quantity")
+    private Long currentQuantity;
+
+
+
+    @Column(name="is_active")
+    private boolean isActive;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private ZonedDateTime createdAt;
+
+    
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private ZonedDateTime updatedAt;
+
+
+
+
+
+
+    public StoreProductEntity(StoreEntity store, ProductEntity product) {
+        this.id = new StoreProductId(store.getId(), product.getId());
+        this.store = store;
+        this.product = product;
+    }
+
+
+    public StoreProductEntity() {
+    }
+
+
+    public StoreProductId getId() {
+        return id;
+    }
+
+
+    public void setId(StoreProductId id) {
+        this.id = id;
+    }
+
+
+    public StoreEntity getStore() {
+        return store;
+    }
+
+
+    public void setStore(StoreEntity store) {
+        this.store = store;
+    }
+
+
+    public ProductEntity getProduct() {
+        return product;
+    }
+
+
+    public void setProduct(ProductEntity product) {
+        this.product = product;
+    }
+
+    public boolean isIsActive() {
+        return isActive;
+    }
+
+    public void setIsActive(boolean isActive) {
+        this.isActive = isActive;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(ZonedDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public ZonedDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(ZonedDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Long getDesiredQuantity() {
+        return desiredQuantity;
+    }
+
+    public void setDesiredQuantity(Long desiredQuantity) {
+        this.desiredQuantity = desiredQuantity;
+    }
+
+    public Long getCurrentQuantity() {
+        return currentQuantity;
+    }
+
+    public void setCurrentQuantity(Long currentQuantity) {
+        this.currentQuantity = currentQuantity;
+    }
+
+
+
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreProductRepository.java">
+package com.nss.pibblest.modules.stores.internal.infrastructure.data;
+
+import java.util.List;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface StoreProductRepository extends JpaRepository<StoreProductEntity, StoreProductId> {
+
+    @EntityGraph(attributePaths={"product"})
+    Page<StoreProductEntity> findByStoreIdAndIsActiveTrue(Long storeId, Pageable pageable);
+
+    @EntityGraph(attributePaths={"product"})
+    Page<StoreProductEntity> findByStoreIdAndProduct_NameContainingIgnoreCaseAndIsActiveTrue(
+        Long storeId,
+        String keyword,
+        Pageable pageable
+    );
+
+    List<StoreProductEntity> findByStoreIdAndIsActiveTrue(Long storeId);
+
+    List<StoreProductEntity> findByStoreIdAndProductIdIn(Long storeId, List<Long> productIds);
+
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/createStore/CreateStoreRequest.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore;
+
+import java.util.Set;
+import com.nss.pibblest.shared.StoreStatus;
+
+public class CreateStoreRequest {
+    private String name;
+    private String address;
+    private StoreStatus status = StoreStatus.ACTIVE;
+    private Set<Long> tagsId;
+
+    public StoreStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(StoreStatus status) {
+        this.status = status;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Set<Long> getTagsId() {
+        return tagsId;
+    }
+
+    public void setTagsId(Set<Long> tagsId) {
+        this.tagsId = tagsId;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/api/dtos/StorePreviewDto.java">
+package com.nss.pibblest.modules.stores.api.dtos;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Duration;
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nss.pibblest.modules.tags.api.dto.TagDto;
+
+public class StorePreviewDto {
+
+    private Long id;
+    private String name;
+    private String address;
+    private String status;
+    private Long totalProducts;
+    private Long currentQuantityOfProducts;
+    private Long salesOfToday;
+    private BigDecimal totalSalesRevenue;
+    private String operatinTime;
+    
+    @JsonIgnore
+    private ZonedDateTime createdAt;
+    private Double growthFromStart;
+    private Long employees; 
+    
+    // Hallazgo #2: Se añaden los tags al preview
+    private List<TagDto> tags = new ArrayList<>();
+
+    public StorePreviewDto(Long id, String name, String address, String status,
+            Long totalProducts, Long currentQuantityOfProducts,
+            Long salesOfToday, BigDecimal totalSalesRevenue,
+            Long employees,
+            ZonedDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.status = status;
+        this.totalProducts = totalProducts != null ? totalProducts : 0L;
+        this.currentQuantityOfProducts = currentQuantityOfProducts != null ? currentQuantityOfProducts : 0L;
+        this.salesOfToday = salesOfToday != null ? salesOfToday : 0L;
+        this.totalSalesRevenue = totalSalesRevenue != null ? totalSalesRevenue : BigDecimal.ZERO;
+        this.employees = employees;
+        this.createdAt = createdAt;
+        this.growthFromStart = calculateDailyGrowth(createdAt);
+    }
+
+    public StorePreviewDto() {
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public Long getTotalProducts() {
+        return totalProducts;
+    }
+
+    public void setTotalProducts(Long totalProducts) {
+        this.totalProducts = totalProducts;
+    }
+
+    public Long getCurrentQuantityOfProducts() {
+        return currentQuantityOfProducts;
+    }
+
+    public void setCurrentQuantityOfProducts(Long currentQuantityOfProducts) {
+        this.currentQuantityOfProducts = currentQuantityOfProducts;
+    }
+
+    private Double calculateDailyGrowth(ZonedDateTime createdAt) {
+        if (createdAt == null || totalSalesRevenue.compareTo(BigDecimal.ZERO) == 0) {
+            return 0.0;
+        }
+
+        long daysAlive = Duration.between(createdAt, ZonedDateTime.now()).toDays();
+
+        if (daysAlive <= 0)
+            daysAlive = 1;
+
+        return totalSalesRevenue.divide(BigDecimal.valueOf(daysAlive), 2, RoundingMode.HALF_UP).doubleValue();
+    }
+
+   
+    public Long getSalesOfToday() {
+        return salesOfToday;
+    }
+
+    public void setSalesOfToday(Long salesOfToday) {
+        this.salesOfToday = salesOfToday;
+    }
+
+    public Double getGrowthFromStart() {
+        return growthFromStart;
+    }
+
+    public void setGrowthFromStart(Double growthFromStart) {
+        this.growthFromStart = growthFromStart;
+    }
+
+    public BigDecimal getTotalSalesRevenue() {
+        return totalSalesRevenue;
+    }
+
+    public void setTotalSalesRevenue(BigDecimal totalSalesRevenue) {
+        this.totalSalesRevenue = totalSalesRevenue;
+    }
+
+    public Long getEmployees() {
+        return employees;
+    }
+
+    public void setEmployees(Long employees) {
+        this.employees = employees;
+    }
+
+    public String getOperatinTime() {
+        return operatinTime;
+    }
+
+    public void setOperatinTime(String operatinTime) {
+        this.operatinTime = operatinTime;
+    }
+
+    public ZonedDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public List<TagDto> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<TagDto> tags) {
+        this.tags = tags;
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/mappers/StoreMapper.java">
+package com.nss.pibblest.modules.stores.internal.mappers;
+
+import java.util.List;
+
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+
+import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
+import com.nss.pibblest.modules.tags.api.dto.TagDto;
+import com.nss.pibblest.modules.tags.internal.infrastructure.data.StoreTagEntity;
+
+@Mapper(componentModel="spring")
+public interface  StoreMapper {
+
+    @BeanMapping(nullValuePropertyMappingStrategy=NullValuePropertyMappingStrategy.IGNORE)
+    void updateEntityFromRequest(UpdateStoreRequest request, @MappingTarget StoreEntity entity);
+    
+    @Mapping(target="id", ignore=true)
+    @Mapping(target= "createdAt", ignore=true)
+    @Mapping(target= "updatedAt", ignore=true)
+    @Mapping(target= "deletedAt", ignore=true)
+    StoreEntity toEntity(CreateStoreRequest request);
+
+    @Mapping(target="createdAt", source="createdAt", dateFormat="dd/MM/yyyy")
+    @Mapping(target="tags", source="storeTags")
+    StoreDto toDto(StoreEntity entity);
+
+    default List<TagDto> mapStoreTags(List<StoreTagEntity> storeTags) {
+        if (storeTags == null) return java.util.Collections.emptyList();
+        return storeTags.stream()
+            .map(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId(),0l))
+            .toList();
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/StoreController.java">
+package com.nss.pibblest.modules.stores.internal.web;
+
+import java.util.List;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
+import com.nss.pibblest.modules.stores.internal.core.StoreProductService;
+import com.nss.pibblest.modules.stores.internal.core.StoreService;
+import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore.DeleteStoreResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/stores")
+@Tag(name = "Stores", description = "Endpoints para la gestión, búsqueda y asignación de tiendas")
+public class StoreController {
+    
+    private final StoreService storeService;
+    private final StoreProductService storeProductService;
+
+    public StoreController(StoreService storeService, StoreProductService storeProductService){
+        this.storeService = storeService;
+        this.storeProductService = storeProductService;
+    }
+
+    @GetMapping("/all")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(
+        summary = "Obtener todas las tiendas (Paginado)", 
+        description = "Retorna un listado paginado de todas las tiendas con su información de previsualización y KPIs calculados al día de hoy."
+    )
+    @ApiResponse(responseCode = "200", description = "Listado de tiendas obtenido exitosamente")
+    public ResponseEntity<GetAllStoresResponse> getAllStores(Pageable pageable){
+        return storeService.getAllStores(pageable);
+    }
+
+    @GetMapping("/simple")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(
+        summary = "Obtener listado simple de tiendas", 
+        description = "Retorna un listado sin paginar que contiene exclusivamente el ID y Nombre de las tiendas activas. Exclusivo para usuarios con rol OWNER."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Listado simple obtenido exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado (Rol insuficiente)")
+    })
+    public ResponseEntity<List<StoreSimpleDto>> getAllStoresSimple() {
+        return storeService.getAllStoresSimple();
+    }
+
+    @GetMapping("/search")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(
+        summary = "Buscar tiendas por palabra clave", 
+        description = "Filtra las tiendas cuyo nombre coincida (parcialmente) con la keyword proporcionada. Incluye los tags asociados y devuelve resultados paginados. Exclusivo para rol OWNER."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Búsqueda completada exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado (Rol insuficiente)")
+    })
+    public ResponseEntity<GetAllStoresResponse> searchStores(
+            @Parameter(description = "Palabra clave para buscar en el nombre de la tienda", example = "Sucursal Norte") 
+            @RequestParam("keyword") String keyword, 
+            Pageable pageable) {
+        return storeService.searchStores(keyword, pageable);
+    }
+
+    @PostMapping("/create")
+    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
+    @Operation(
+        summary = "Crear una nueva tienda", 
+        description = "Registra una sucursal en el sistema de la organización. Operación exclusiva para el rol OWNER."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Tienda creada exitosamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)")
+    })
+    public ResponseEntity<CreateStoreResponse> createStore(@Valid @RequestBody CreateStoreRequest request) {
+        return storeService.createStore(request);
+    }
+
+    @PutMapping("/edit/{id}")
+    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
+    @Operation(
+        summary = "Actualizar información de una tienda", 
+        description = "Modifica los datos y sincroniza los tags de una tienda existente. Operación exclusiva para el rol OWNER."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Tienda actualizada correctamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)"),
+        @ApiResponse(responseCode = "404", description = "Tienda no encontrada")
+    })
+    public ResponseEntity<UpdateStoreResponse> updateStore(
+            @PathVariable("id") Long id, 
+            @Valid @RequestBody UpdateStoreRequest request) {
+        return storeService.updateStore(id, request);
+    }
+
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
+    @Operation(
+        summary = "Eliminar una tienda (Soft Delete)", 
+        description = "Marca la tienda como eliminada de forma lógica y remueve sus relaciones huérfanas. Operación exclusiva para el rol OWNER."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Tienda eliminada correctamente"),
+        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)"),
+        @ApiResponse(responseCode = "404", description = "Tienda no encontrada")
+    })
+    public ResponseEntity<DeleteStoreResponse> deleteStore(@PathVariable("id") Long id) {
+        return storeService.deleteStore(id);
+    }
+
+    @PostMapping("/assign")
+    @PreAuthorize("hasRole('OWNER')")
+    @Operation(
+        summary = "Asignar producto a tienda", 
+        description = "Transfiere un producto existente del inventario global hacia una tienda específica estableciendo una cantidad inicial/deseada."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "201", description = "Producto asignado a la tienda exitosamente"),
+        @ApiResponse(responseCode = "400", description = "Inventario insuficiente o errores de validación"),
+        @ApiResponse(responseCode = "404", description = "Producto o Tienda no encontrados")
+    })
+    public ResponseEntity<AsignStoreProductToStoreResponse> assignProduct (@Valid @RequestBody AsignStoreProductToStoreRequest request){
+        return this.storeProductService.assignProductToStore(request);
+    }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreRepository.java">
+package com.nss.pibblest.modules.stores.internal.infrastructure.data;
+
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
+import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
+
+@Repository
+public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
+    Optional<StoreEntity>  findById(Long id);
+
+    @Query("""
+     SELECT new com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto(
+        s.id,
+        s.name,
+        s.address,
+        s.status,
+        COALESCE(SUM(sp.desiredQuantity), 0L),
+        COALESCE(SUM(sp.currentQuantity), 0L),
+        (SELECT COUNT(sa) FROM SaleEntity sa WHERE sa.store.id = s.id AND sa.createdAt >= :startOfDay),
+        (SELECT SUM(sa.totalAmount) FROM SaleEntity sa WHERE sa.store.id = s.id),
+        (SELECT COUNT(es) FROM EmployeeStoreEntity es WHERE es.store.id = s.id AND es.isActive = true),
+        s.createdAt
+     )        
+    FROM StoreEntity s 
+    LEFT JOIN StoreProductEntity sp ON sp.store.id = s.id AND sp.isActive = true
+    GROUP BY s.id, s.name, s.address, s.status, s.createdAt
+    """)
+    Page<StorePreviewDto> findStorePreviewInfo(Pageable pageable, @Param("startOfDay") ZonedDateTime startOfDay);
+
+    @Query("""
+     SELECT new com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto(
+        s.id AS id,
+        s.name AS name,
+        s.address AS address,
+        s.status AS status,
+        COALESCE(SUM(sp.desiredQuantity), 0L),
+        COALESCE(SUM(sp.currentQuantity), 0L),
+        (SELECT COUNT(sa) FROM SaleEntity sa WHERE sa.store.id = s.id AND sa.createdAt >= :startOfDay),
+        (SELECT SUM(sa.totalAmount) FROM SaleEntity sa WHERE sa.store.id = s.id),
+        (SELECT COUNT(es) FROM EmployeeStoreEntity es WHERE es.store.id = s.id AND es.isActive = true),
+        s.createdAt AS createdAt
+     )        
+    FROM StoreEntity s 
+    LEFT JOIN StoreProductEntity sp ON sp.store.id = s.id AND sp.isActive = true
+    WHERE s.deletedAt IS NULL AND LOWER(s.name) LIKE LOWER(:keyword)
+    GROUP BY s.id, s.name, s.address, s.status, s.createdAt
+    """)
+    Page<StorePreviewDto> findStorePreviewInfoByKeyword(Pageable pageable, @Param("startOfDay") ZonedDateTime startOfDay, @Param("keyword") String keyword);
+
+    // Hallazgo #1: Listado simple sin paginación (Solo ID y Nombre)
+    @Query("SELECT new com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto(s.id, s.name) FROM StoreEntity s WHERE s.deletedAt IS NULL")
+    List<StoreSimpleDto> findAllSimpleStores();
+
+    /**
+     * Consulta ultra rápida para recalcular en vivo los KPIs de una sola tienda.
+     * Se usa para disparar las actualizaciones SSE.
+     */
+    @Query("""
+     SELECT new com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto(
+        s.id,
+        s.name,
+        s.address,
+        s.status,
+        COALESCE(SUM(sp.desiredQuantity), 0L),
+        COALESCE(SUM(sp.currentQuantity), 0L),
+        (SELECT COUNT(sa) FROM SaleEntity sa WHERE sa.store.id = s.id AND sa.createdAt >= :startOfDay),
+        (SELECT SUM(sa.totalAmount) FROM SaleEntity sa WHERE sa.store.id = s.id),
+        (SELECT COUNT(es) FROM EmployeeStoreEntity es WHERE es.store.id = s.id AND es.isActive = true),
+        s.createdAt
+     )        
+    FROM StoreEntity s 
+    LEFT JOIN StoreProductEntity sp ON sp.store.id = s.id AND sp.isActive = true
+    WHERE s.id = :storeId
+    GROUP BY s.id, s.name, s.address, s.status, s.createdAt
+    """)
+    Optional<StorePreviewDto> findStorePreviewById(
+            @Param("storeId") Long storeId, 
+            @Param("startOfDay") ZonedDateTime startOfDay
+    );
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreService.java">
+package com.nss.pibblest.modules.stores.internal.core;
+
+import java.time.Duration;
+import java.time.Period;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
+import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
+import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
+import com.nss.pibblest.modules.stores.internal.core.exceptions.StoreNotFound;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
+import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
+import com.nss.pibblest.modules.stores.internal.mappers.StoreMapper;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore.DeleteStoreResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
+import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
+import com.nss.pibblest.modules.tags.api.dto.TagDto;
+import com.nss.pibblest.modules.tags.internal.core.exceptions.TagsNotFound;
+import com.nss.pibblest.modules.tags.internal.infrastructure.data.StoreTagEntity;
+import com.nss.pibblest.modules.tags.internal.infrastructure.data.StoreTagRepository;
+import com.nss.pibblest.modules.tags.internal.infrastructure.data.TagEntity;
+import com.nss.pibblest.modules.tags.internal.infrastructure.data.TagRepository;
+
+@Service
+public class StoreService {
+
+    private final StoreRepository storeRepository;
+    private final StoreMapper storeMapper;
+    private final MessageSource messageSource;
+    private final TagRepository tagRepository;
+    private final StoreTagRepository storeTagRepository;
+
+    public StoreService(StoreRepository storeRepository, StoreMapper storeMapper, MessageSource messageSource,
+                        TagRepository tagRepository, StoreTagRepository storeTagRepository) {
+        this.storeRepository = storeRepository;
+        this.storeMapper = storeMapper;
+        this.messageSource = messageSource;
+        this.tagRepository = tagRepository;
+        this.storeTagRepository = storeTagRepository;
+    }
+
+    public ResponseEntity<GetAllStoresResponse> getAllStores(Pageable pageable) {
+        ZonedDateTime startOfToday = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfo(pageable, startOfToday);
+        Locale locale = LocaleContextHolder.getLocale();
+
+        storesPage.forEach(dto -> {
+            String localizedTime = getLocalizedOperatingTime(dto.getCreatedAt(), locale);
+            dto.setOperatinTime(localizedTime);
+        });
+        GetAllStoresResponse response = new GetAllStoresResponse(storesPage);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    // Hallazgo #1: Obtener la lista simple de todas las tiendas (Id, Name)
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<StoreSimpleDto>> getAllStoresSimple() {
+        return ResponseEntity.ok(storeRepository.findAllSimpleStores());
+    }
+
+    // Hallazgo #2: Búsqueda segura por palabra clave y extracción de Tags
+    @Transactional(readOnly = true)
+    public ResponseEntity<GetAllStoresResponse> searchStores(String keyword, Pageable pageable) {
+        ZonedDateTime startOfToday = ZonedDateTime.now().truncatedTo(ChronoUnit.DAYS);
+        Locale locale = LocaleContextHolder.getLocale();
+
+        // 1. Limpiamos la palabra de espacios accidentales y le agregamos los comodines '%' en Java
+        String safeKeyword = "%" + (keyword != null ? keyword.trim() : "") + "%";
+
+        // 2. Pasamos el safeKeyword a la consulta
+        Page<StorePreviewDto> storesPage = storeRepository.findStorePreviewInfoByKeyword(pageable, startOfToday, safeKeyword);
+        
+        List<Long> storeIds = storesPage.getContent().stream().map(StorePreviewDto::getId).collect(Collectors.toList());
+
+        if (!storeIds.isEmpty()) {
+            List<StoreTagEntity> storeTags = storeTagRepository.findTagsByStoreIds(storeIds);
+            
+            Map<Long, List<TagDto>> tagsByStore = storeTags.stream()
+                    .collect(Collectors.groupingBy(
+                            st -> st.getStoreEntity().getId(),
+                            Collectors.mapping(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId(), 0L), Collectors.toList())
+                    ));
+
+            storesPage.forEach(dto -> {
+                dto.setTags(tagsByStore.getOrDefault(dto.getId(), new ArrayList<>()));
+                String localizedTime = getLocalizedOperatingTime(dto.getCreatedAt(), locale);
+                dto.setOperatinTime(localizedTime);
+            });
+        }
+
+        GetAllStoresResponse response = new GetAllStoresResponse(storesPage);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Transactional
+    public ResponseEntity<CreateStoreResponse> createStore(CreateStoreRequest request) {
+
+        StoreEntity storeEntity = storeMapper.toEntity(request);
+        StoreEntity newStoreEntity = storeRepository.save(storeEntity);
+
+        if (request.getTagsId() != null && !request.getTagsId().isEmpty()) {
+            validateTags(request.getTagsId());
+            for (Long tagId : request.getTagsId()) {
+                TagEntity tag = tagRepository.getReferenceById(tagId);
+                newStoreEntity.getStoreTags().add(new StoreTagEntity(newStoreEntity, tag));
+            }
+            newStoreEntity = storeRepository.save(newStoreEntity);
+        }
+
+        // Hallazgo #3: Retorna el objeto DTO completo mapeado
+        StoreDto storeDto = storeMapper.toDto(newStoreEntity);
+        String message = messageSource.getMessage("store.created.response", new Object[] { newStoreEntity.getName() },
+                LocaleContextHolder.getLocale());
+        
+        CreateStoreResponse response = new CreateStoreResponse(message, storeDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Transactional
+    public ResponseEntity<UpdateStoreResponse> updateStore(Long id, UpdateStoreRequest request) {
+
+        Locale locale = LocaleContextHolder.getLocale();
+        String notFoundMessage = messageSource.getMessage("error.store.not.found", new Object[] { id }, locale);
+
+        StoreEntity storeEntity = storeRepository.findById(id).orElseThrow(
+                () -> new StoreNotFound(notFoundMessage));
+
+        storeMapper.updateEntityFromRequest(request, storeEntity);
+
+        Set<Long> requestedTags = request.getTagsId() == null ? new HashSet<>() : request.getTagsId();
+        if (!requestedTags.isEmpty()) {
+            validateTags(requestedTags);
+        }
+
+        // 1. Eliminar tags desmarcados
+        storeEntity.getStoreTags().removeIf(st -> !requestedTags.contains(st.getTagEntity().getId()));
+
+        // 2. Encontrar existentes
+        Set<Long> existingTagIds = storeEntity.getStoreTags().stream()
+                .map(st -> st.getTagEntity().getId())
+                .collect(Collectors.toSet());
+
+        // 3. Agregar nuevos
+        for (Long tagId : requestedTags) {
+            if (!existingTagIds.contains(tagId)) {
+                TagEntity tag = tagRepository.getReferenceById(tagId);
+                storeEntity.getStoreTags().add(new StoreTagEntity(storeEntity, tag));
+            }
+        }
+
+        storeRepository.save(storeEntity);
+
+        // Hallazgo #3: Retorna el objeto DTO completo mapeado
+        StoreDto storeDto = storeMapper.toDto(storeEntity);
+        String successMessage = messageSource.getMessage("store.updated.success",
+                new Object[] { storeEntity.getName() }, locale);
+
+        UpdateStoreResponse response = new UpdateStoreResponse(successMessage, storeDto);
+
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Transactional
+    public ResponseEntity<DeleteStoreResponse> deleteStore(Long id) {
+        Locale locale = LocaleContextHolder.getLocale();
+        StoreEntity store = storeRepository.findById(id).orElseThrow(
+                () -> new StoreNotFound(messageSource.getMessage("error.store.not.found", new Object[] { id }, locale)));
+
+        // Soft Delete de la tienda
+        store.setDeletedAt(ZonedDateTime.now());
+        storeRepository.save(store);
+
+        // Hard Delete de las asociaciones en la tabla pivote
+        storeTagRepository.deleteByStoreId(id);
+
+        String message = messageSource.getMessage("store.deleted.success", new Object[] { store.getName() }, locale);
+        return ResponseEntity.status(HttpStatus.OK).body(new DeleteStoreResponse(message));
+    }
+
+    private void validateTags(Set<Long> tagsId) {
+        if (tagsId == null || tagsId.isEmpty()) return;
+
+        List<TagEntity> existingTags = tagRepository.findAllById(tagsId);
+
+        List<TagEntity> activeTags = existingTags.stream()
+            .filter(t -> t.getDeletedAt() == null)
+            .collect(Collectors.toList());
+
+        if (activeTags.size() != tagsId.size()) {
+            Set<Long> foundIds = activeTags.stream()
+                .map(TagEntity::getId)
+                .collect(Collectors.toSet());
+                
+            Set<Long> missingIds = new HashSet<>(tagsId);
+            missingIds.removeAll(foundIds);
+            
+            String errorMessage = messageSource.getMessage("error.tags.not.found",
+                    new Object[] { missingIds.toString() }, LocaleContextHolder.getLocale());
+            throw new TagsNotFound(errorMessage);
+        }
+    }
+
+    private String getLocalizedOperatingTime(ZonedDateTime createdAt, Locale locale) {
+        if (createdAt == null) {
+            return messageSource.getMessage("time.unknown", null, locale);
+        }
+
+        ZonedDateTime now = ZonedDateTime.now();
+        Period period = Period.between(createdAt.toLocalDate(), now.toLocalDate());
+
+        int years = period.getYears();
+        int months = period.getMonths();
+        int days = period.getDays();
+
+        // Evaluamos Años
+        if (years > 0) {
+            String key = years == 1 ? "time.years.one" : "time.years.many";
+            return messageSource.getMessage(key, new Object[] { years }, locale);
+        }
+        // Evaluamos Meses
+        if (months > 0) {
+            String key = months == 1 ? "time.months.one" : "time.months.many";
+            return messageSource.getMessage(key, new Object[] { months }, locale);
+        }
+        // Evaluamos Días
+        if (days > 0) {
+            String key = days == 1 ? "time.days.one" : "time.days.many";
+            return messageSource.getMessage(key, new Object[] { days }, locale);
+        }
+
+        // Evaluamos Horas si se creó hoy
+        long hours = Duration.between(createdAt, now).toHours();
+        if (hours > 0) {
+            String key = hours == 1 ? "time.hours.one" : "time.hours.many";
+            return messageSource.getMessage(key, new Object[] { hours }, locale);
+        }
+
+        // Menos de una hora
+        return messageSource.getMessage("time.less.than.hour", null, locale);
+    }
+}
+</file>
+
+</files>

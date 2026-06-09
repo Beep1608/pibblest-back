@@ -43,6 +43,7 @@ import com.nss.pibblest.modules.employees.internal.web.requests.updateEmployee.U
 import com.nss.pibblest.modules.security.internal.core.JwtService;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
+import com.nss.pibblest.modules.stores.internal.core.exceptions.StoreNotFound;
 import com.nss.pibblest.modules.tenant.SessionTrackerService;
 import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
 
@@ -113,7 +114,7 @@ public class EmployeeService {
             Long storeId = assignment.storeId();
 
             if (!storeRepository.existsById(storeId)) {
-                throw new EntityNotFoundException(messageSource.getMessage("error.store.not.found", new Object[]{storeId}, locale));
+                throw new StoreNotFound(messageSource.getMessage("error.store.not.found", new Object[]{storeId}, locale));
             }
 
             boolean isAssignedToStore = authEmployee.getEmployeeStores().stream()
@@ -405,7 +406,8 @@ public class EmployeeService {
 
         for (Long storeId : requestedStoreIds) {
             if (!existingStoreIds.contains(storeId)) {
-                StoreEntity store = storeRepository.findById(storeId).orElseThrow();
+                StoreEntity store = storeRepository.findById(storeId)
+                        .orElseThrow(() -> new StoreNotFound("La tienda especificada no existe."));
                 employee.getEmployeeStores().add(new EmployeeStoreEntity(store, employee, true));
             }
         }
@@ -437,7 +439,8 @@ public class EmployeeService {
                 .collect(Collectors.toSet());
 
         for (StoreAssignmentRequest sa : assignments) {
-            StoreEntity storeProxy = storeRepository.getReferenceById(sa.storeId());
+            StoreEntity storeProxy = storeRepository.findById(sa.storeId())
+                    .orElseThrow(() -> new StoreNotFound("La tienda especificada no existe."));
             
             if (sa.permissions() != null) {
                 for (ModulePermissionRequest mp : sa.permissions()) {
