@@ -21,6 +21,7 @@ import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore.DeleteStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetMyStoresResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
 
@@ -63,6 +64,21 @@ public class StoreController {
             @Parameter(description = "Palabra clave para buscar") @RequestParam("keyword") String keyword, 
             Pageable pageable) {
         return storeService.searchStores(keyword, pageable);
+    }
+
+    @GetMapping("/my-stores/search")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('OWNER')")
+    @Operation(
+        summary = "Buscar tiendas asignadas al empleado", 
+        description = "Filtra exclusivamente las tiendas a las que el usuario actual está asignado. Devuelve un payload ligero sin datos analíticos ni financieros."
+    )
+    @ApiResponses({
+        @ApiResponse(responseCode = "200", description = "Búsqueda completada exitosamente")
+    })
+    public ResponseEntity<GetMyStoresResponse> searchMyStores(
+            @Parameter(description = "Palabra clave para buscar") @RequestParam(value = "keyword", required = false) String keyword, 
+            Pageable pageable) {
+        return storeService.searchMyStores(keyword, pageable);
     }
 
     @PostMapping("/create")

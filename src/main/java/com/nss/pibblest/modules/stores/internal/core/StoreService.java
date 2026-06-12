@@ -20,10 +20,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
 import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
 import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
+import com.nss.pibblest.modules.stores.api.dtos.EmployeeStorePreviewDto;
 import com.nss.pibblest.modules.stores.internal.core.exceptions.StoreNotFound;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
@@ -32,6 +35,7 @@ import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore.DeleteStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetMyStoresResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
 import com.nss.pibblest.modules.tags.api.dto.TagDto;
@@ -110,6 +114,39 @@ public class StoreService {
 
         GetAllStoresResponse response = new GetAllStoresResponse(storesPage);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<GetMyStoresResponse> searchMyStores(String keyword, Pageable pageable) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        java.util.UUID authenticatedEmployeeId = java.util.UUID.fromString((String) auth.getPrincipal());
+        Locale locale = LocaleContextHolder.getLocale();
+
+        String safeKeyword = "%" + (keyword != null ? keyword.trim() : "") + "%";
+
+        Page<EmployeeStorePreviewDto> storesPage = storeRepository.findMyStoresByKeyword(pageable, authenticatedEmployeeId, safeKeyword);
+
+        List<Long> storeIds = storesPage.getContent().stream()
+                .map(EmployeeStorePreviewDto::getId)
+                .collect(Collectors.toList());
+
+        if (!storeIds.isEmpty()) {
+            List<StoreTagEntity> storeTags = storeTagRepository.findTagsByStoreIds(storeIds);
+
+            Map<Long, List<TagDto>> tagsByStore = storeTags.stream()
+                    .collect(Collectors.groupingBy(
+                            st -> st.getStoreEntity().getId(),
+                            Collectors.mapping(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId(), 0L), Collectors.toList())
+                    ));
+
+            storesPage.forEach(dto -> {
+                dto.setTags(tagsByStore.getOrDefault(dto.getId(), new ArrayList<>()));
+                String localizedTime = getLocalizedOperatingTime(dto.getCreatedAt(), locale);
+                dto.setOperatinTime(localizedTime);
+            });
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(new GetMyStoresResponse(storesPage));
     }
 
     @Transactional

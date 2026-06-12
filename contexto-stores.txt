@@ -41,12 +41,12 @@ The content is organized as follows:
 </file_summary>
 
 <directory_structure>
+src/main/java/com/nss/pibblest/modules/stores/api/dtos/EmployeeStorePreviewDto.java
 src/main/java/com/nss/pibblest/modules/stores/api/dtos/StoreDto.java
 src/main/java/com/nss/pibblest/modules/stores/api/dtos/StorePreviewDto.java
 src/main/java/com/nss/pibblest/modules/stores/api/dtos/StoreSimpleDto.java
 src/main/java/com/nss/pibblest/modules/stores/internal/core/exceptions/StoreNotFound.java
 src/main/java/com/nss/pibblest/modules/stores/internal/core/kafka/consumers/StoreKafkaConsumer.java
-src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreProductService.java
 src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreService.java
 src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreSseService.java
 src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreEntity.java
@@ -55,13 +55,12 @@ src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/Store
 src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreProductRepository.java
 src/main/java/com/nss/pibblest/modules/stores/internal/infrastructure/data/StoreRepository.java
 src/main/java/com/nss/pibblest/modules/stores/internal/mappers/StoreMapper.java
-src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/storeProducts/asignProductToStore/AsignStoreProductToStoreRequest.java
-src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/storeProducts/asignProductToStore/AsignStoreProductToStoreResponse.java
 src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/createStore/CreateStoreRequest.java
 src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/createStore/CreateStoreResponse.java
 src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/deleteStore/DeleteStoreResponse.java
 src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/getAllStores/GetAllStoresRequest.java
 src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/getAllStores/GetAllStoresResponse.java
+src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/getAllStores/GetMyStoresResponse.java
 src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/updateStore/UpdateStoreRequest.java
 src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/updateStore/UpdateStoreResponse.java
 src/main/java/com/nss/pibblest/modules/stores/internal/web/StoreController.java
@@ -71,6 +70,102 @@ src/main/java/com/nss/pibblest/modules/stores/internal/web/StoreSseController.ja
 
 <files>
 This section contains the contents of the repository's files.
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/api/dtos/EmployeeStorePreviewDto.java">
+package com.nss.pibblest.modules.stores.api.dtos;
+
+import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.nss.pibblest.modules.tags.api.dto.TagDto;
+
+public class EmployeeStorePreviewDto {
+
+    private Long id;
+    private String name;
+    private String address;
+    private String status;
+    private String operatinTime;
+
+    @JsonIgnore
+    private ZonedDateTime createdAt;
+
+    private List<TagDto> tags = new ArrayList<>();
+
+    public EmployeeStorePreviewDto(Long id, String name, String address, String status, ZonedDateTime createdAt) {
+        this.id = id;
+        this.name = name;
+        this.address = address;
+        this.status = status;
+        this.createdAt = createdAt;
+    }
+
+    public EmployeeStorePreviewDto() {}
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
+
+    public String getOperatinTime() { return operatinTime; }
+    public void setOperatinTime(String operatinTime) { this.operatinTime = operatinTime; }
+
+    public ZonedDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(ZonedDateTime createdAt) { this.createdAt = createdAt; }
+
+    public List<TagDto> getTags() { return tags; }
+    public void setTags(List<TagDto> tags) { this.tags = tags; }
+}
+</file>
+
+<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/stores/getAllStores/GetMyStoresResponse.java">
+package com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores;
+
+import java.util.List;
+import org.springframework.data.domain.Page;
+import com.nss.pibblest.modules.stores.api.dtos.EmployeeStorePreviewDto;
+
+public class GetMyStoresResponse {
+
+    private List<EmployeeStorePreviewDto> stores;
+    private int pageNo;
+    private int pageSize;
+    private long totalElements;
+    private int totalPages;
+    private boolean last;
+
+    public GetMyStoresResponse(Page<EmployeeStorePreviewDto> page) {
+        this.stores = page.getContent();
+        this.pageNo = page.getNumber();
+        this.pageSize = page.getSize();
+        this.totalElements = page.getTotalElements();
+        this.totalPages = page.getTotalPages();
+        this.last = page.isLast();
+    }
+
+    public List<EmployeeStorePreviewDto> getStores() { return stores; }
+    public void setStores(List<EmployeeStorePreviewDto> stores) { this.stores = stores; }
+    public int getPageNo() { return pageNo; }
+    public void setPageNo(int pageNo) { this.pageNo = pageNo; }
+    public int getPageSize() { return pageSize; }
+    public void setPageSize(int pageSize) { this.pageSize = pageSize; }
+    public long getTotalElements() { return totalElements; }
+    public void setTotalElements(long totalElements) { this.totalElements = totalElements; }
+    public int getTotalPages() { return totalPages; }
+    public void setTotalPages(int totalPages) { this.totalPages = totalPages; }
+    public boolean isLast() { return last; }
+    public void setLast(boolean last) { this.last = last; }
+}
+</file>
 
 <file path="src/main/java/com/nss/pibblest/modules/stores/api/dtos/StoreSimpleDto.java">
 package com.nss.pibblest.modules.stores.api.dtos;
@@ -169,63 +264,6 @@ public class StoreProductId implements  Serializable {
         this.product_id = product_id;
     }
     
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/storeProducts/asignProductToStore/AsignStoreProductToStoreRequest.java">
-package com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore;
-
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
-
-public class AsignStoreProductToStoreRequest {
-    @NotNull(message = "No puede ser nulo")
-    private Long storeId;
-     @NotNull(message = "No puede ser nulo")
-    private Long productId;
-
-    @NotNull(message = "No puede ser nulo")
-    @Positive(message = "La cantidad no puede ser negativa")
-    private Long quantity;
-    public Long getStoreId() {
-        return storeId;
-    }
-    public void setStoreId(Long storeId) {
-        this.storeId = storeId;
-    }
-    public Long getProductId() {
-        return productId;
-    }
-    public void setProductId(Long productId) {
-        this.productId = productId;
-    }
-    public Long getQuantity() {
-        return quantity;
-    }
-    public void setQuantity(Long quantity) {
-        this.quantity = quantity;
-    }
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/stores/internal/web/requests/storeProducts/asignProductToStore/AsignStoreProductToStoreResponse.java">
-package com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore;
-
-public class AsignStoreProductToStoreResponse {
-    private String message ;
-
-    public AsignStoreProductToStoreResponse(String message){
-        this.message = message;
-    }
-    public AsignStoreProductToStoreResponse(){}
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
 }
 </file>
 
@@ -415,88 +453,6 @@ public class StoreKafkaConsumer {
         
     }
     
-}
-</file>
-
-<file path="src/main/java/com/nss/pibblest/modules/stores/internal/core/StoreProductService.java">
-package com.nss.pibblest.modules.stores.internal.core;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
-import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductEntity;
-import com.nss.pibblest.modules.products.internal.infrastructure.data.ProductRespository;
-import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
-import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductEntity;
-import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductId;
-import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductRepository;
-import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
-import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreRequest;
-import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreResponse;
-import com.nss.pibblest.shared.exceptions.EntityNotFoundException;
-
-import jakarta.transaction.Transactional;
-
-@Service
-public class StoreProductService {
-
-    private final StoreProductRepository storeProductRepository;
-    private final StoreRepository storeRepository;
-    private final ProductRespository productRespository;
-
-    public StoreProductService(StoreProductRepository storeProductRepository,
-        StoreRepository storeRepository, ProductRespository productRespository
-    ){
-        this.storeProductRepository = storeProductRepository;
-        this.storeRepository = storeRepository;
-        this.productRespository = productRespository;
-    }
-
-    @Transactional
-    public ResponseEntity<AsignStoreProductToStoreResponse> assignProductToStore(AsignStoreProductToStoreRequest request){
-
-        ProductEntity productEntity = productRespository.findById(request.getProductId())
-        .orElseThrow(() -> new EntityNotFoundException("No se encontró el producto con id: "+ request.getProductId()));
-
-        StoreEntity storeEntity = storeRepository.findById(request.getStoreId())
-        .orElseThrow(() -> new EntityNotFoundException("No se encontró la tienda con id: "+ request.getStoreId()));
-
-        if(productEntity.getQuantity() < request.getQuantity()){
-            throw new IllegalStateException("El stock es menor a la cantidad que se queire asignar");
-        }
-
-        productEntity.setQuantity(productEntity.getQuantity() - request.getQuantity());
-        productRespository.save(productEntity);
-
-        StoreProductId storeProductId = new StoreProductId(request.getStoreId(), request.getProductId());
-
-        StoreProductEntity storeProductEntity = storeProductRepository.findById(storeProductId)
-        .orElseGet(() -> {
-            StoreProductEntity newStoreProductEntity = new StoreProductEntity();
-            newStoreProductEntity.setId(storeProductId);
-            
-        
-
-            newStoreProductEntity.setProduct(productEntity);
-            newStoreProductEntity.setStore(storeEntity);
-            newStoreProductEntity.setDesiredQuantity(request.getQuantity());
-            return newStoreProductEntity;
-        });
-
-        storeProductEntity.setDesiredQuantity(request.getQuantity());
-        storeProductEntity.setCurrentQuantity(request.getQuantity());
-        storeProductEntity.setIsActive(true);
-
-        storeProductRepository.save(storeProductEntity);
-
-        AsignStoreProductToStoreResponse response = new AsignStoreProductToStoreResponse("Se asigno correctamente");
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
-
-    }
-
-
 }
 </file>
 
@@ -1288,14 +1244,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
-import com.nss.pibblest.modules.stores.internal.core.StoreProductService;
 import com.nss.pibblest.modules.stores.internal.core.StoreService;
-import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreRequest;
-import com.nss.pibblest.modules.stores.internal.web.requests.storeProducts.asignProductToStore.AsignStoreProductToStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore.DeleteStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetMyStoresResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
 
@@ -1308,84 +1262,63 @@ import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/stores")
-@Tag(name = "Stores", description = "Endpoints para la gestión, búsqueda y asignación de tiendas")
+@Tag(name = "Stores", description = "Endpoints para la gestión, búsqueda y administración maestra de tiendas")
 public class StoreController {
     
     private final StoreService storeService;
-    private final StoreProductService storeProductService;
 
-    public StoreController(StoreService storeService, StoreProductService storeProductService){
+    public StoreController(StoreService storeService){
         this.storeService = storeService;
-        this.storeProductService = storeProductService;
     }
 
     @GetMapping("/all")
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(
-        summary = "Obtener todas las tiendas (Paginado)", 
-        description = "Retorna un listado paginado de todas las tiendas con su información de previsualización y KPIs calculados al día de hoy."
-    )
-    @ApiResponse(responseCode = "200", description = "Listado de tiendas obtenido exitosamente")
+    @Operation(summary = "Obtener todas las tiendas (Paginado)")
     public ResponseEntity<GetAllStoresResponse> getAllStores(Pageable pageable){
         return storeService.getAllStores(pageable);
     }
 
     @GetMapping("/simple")
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(
-        summary = "Obtener listado simple de tiendas", 
-        description = "Retorna un listado sin paginar que contiene exclusivamente el ID y Nombre de las tiendas activas. Exclusivo para usuarios con rol OWNER."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listado simple obtenido exitosamente"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Rol insuficiente)")
-    })
+    @Operation(summary = "Obtener listado simple de tiendas")
     public ResponseEntity<List<StoreSimpleDto>> getAllStoresSimple() {
         return storeService.getAllStoresSimple();
     }
 
     @GetMapping("/search")
     @PreAuthorize("hasRole('OWNER')")
-    @Operation(
-        summary = "Buscar tiendas por palabra clave", 
-        description = "Filtra las tiendas cuyo nombre coincida (parcialmente) con la keyword proporcionada. Incluye los tags asociados y devuelve resultados paginados. Exclusivo para rol OWNER."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Búsqueda completada exitosamente"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Rol insuficiente)")
-    })
+    @Operation(summary = "Buscar tiendas por palabra clave")
     public ResponseEntity<GetAllStoresResponse> searchStores(
-            @Parameter(description = "Palabra clave para buscar en el nombre de la tienda", example = "Sucursal Norte") 
-            @RequestParam("keyword") String keyword, 
+            @Parameter(description = "Palabra clave para buscar") @RequestParam("keyword") String keyword, 
             Pageable pageable) {
         return storeService.searchStores(keyword, pageable);
     }
 
-    @PostMapping("/create")
-    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
+    @GetMapping("/my-stores/search")
+    @PreAuthorize("hasRole('EMPLOYEE') or hasRole('OWNER')")
     @Operation(
-        summary = "Crear una nueva tienda", 
-        description = "Registra una sucursal en el sistema de la organización. Operación exclusiva para el rol OWNER."
+        summary = "Buscar tiendas asignadas al empleado", 
+        description = "Filtra exclusivamente las tiendas a las que el usuario actual está asignado. Devuelve un payload ligero sin datos analíticos ni financieros."
     )
     @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Tienda creada exitosamente"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)")
+        @ApiResponse(responseCode = "200", description = "Búsqueda completada exitosamente")
     })
+    public ResponseEntity<GetMyStoresResponse> searchMyStores(
+            @Parameter(description = "Palabra clave para buscar") @RequestParam(value = "keyword", required = false) String keyword, 
+            Pageable pageable) {
+        return storeService.searchMyStores(keyword, pageable);
+    }
+
+    @PostMapping("/create")
+    @PreAuthorize("hasRole('OWNER')") 
+    @Operation(summary = "Crear una nueva tienda")
     public ResponseEntity<CreateStoreResponse> createStore(@Valid @RequestBody CreateStoreRequest request) {
         return storeService.createStore(request);
     }
 
     @PutMapping("/edit/{id}")
-    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
-    @Operation(
-        summary = "Actualizar información de una tienda", 
-        description = "Modifica los datos y sincroniza los tags de una tienda existente. Operación exclusiva para el rol OWNER."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Tienda actualizada correctamente"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)"),
-        @ApiResponse(responseCode = "404", description = "Tienda no encontrada")
-    })
+    @PreAuthorize("hasRole('OWNER')") 
+    @Operation(summary = "Actualizar información de una tienda")
     public ResponseEntity<UpdateStoreResponse> updateStore(
             @PathVariable("id") Long id, 
             @Valid @RequestBody UpdateStoreRequest request) {
@@ -1393,33 +1326,10 @@ public class StoreController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('OWNER')") // Restricción estricta para el Dueño
-    @Operation(
-        summary = "Eliminar una tienda (Soft Delete)", 
-        description = "Marca la tienda como eliminada de forma lógica y remueve sus relaciones huérfanas. Operación exclusiva para el rol OWNER."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Tienda eliminada correctamente"),
-        @ApiResponse(responseCode = "403", description = "Acceso denegado (Solo permitido para OWNER)"),
-        @ApiResponse(responseCode = "404", description = "Tienda no encontrada")
-    })
+    @PreAuthorize("hasRole('OWNER')") 
+    @Operation(summary = "Eliminar una tienda (Soft Delete)")
     public ResponseEntity<DeleteStoreResponse> deleteStore(@PathVariable("id") Long id) {
         return storeService.deleteStore(id);
-    }
-
-    @PostMapping("/assign")
-    @PreAuthorize("hasRole('OWNER')")
-    @Operation(
-        summary = "Asignar producto a tienda", 
-        description = "Transfiere un producto existente del inventario global hacia una tienda específica estableciendo una cantidad inicial/deseada."
-    )
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Producto asignado a la tienda exitosamente"),
-        @ApiResponse(responseCode = "400", description = "Inventario insuficiente o errores de validación"),
-        @ApiResponse(responseCode = "404", description = "Producto o Tienda no encontrados")
-    })
-    public ResponseEntity<AsignStoreProductToStoreResponse> assignProduct (@Valid @RequestBody AsignStoreProductToStoreRequest request){
-        return this.storeProductService.assignProductToStore(request);
     }
 }
 </file>
@@ -1441,6 +1351,7 @@ import org.springframework.stereotype.Repository;
 
 import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
 import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
+import com.nss.pibblest.modules.stores.api.dtos.EmployeeStorePreviewDto;
 
 @Repository
 public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
@@ -1515,6 +1426,27 @@ public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
             @Param("storeId") Long storeId, 
             @Param("startOfDay") ZonedDateTime startOfDay
     );
+
+    @Query("""
+     SELECT new com.nss.pibblest.modules.stores.api.dtos.EmployeeStorePreviewDto(
+        s.id,
+        s.name,
+        s.address,
+        s.status,
+        s.createdAt
+     )
+     FROM StoreEntity s
+     JOIN EmployeeStoreEntity es ON es.store.id = s.id
+     WHERE es.employee.id = :employeeId
+       AND es.isActive = true
+       AND s.deletedAt IS NULL
+       AND LOWER(s.name) LIKE LOWER(:keyword)
+    """)
+    Page<EmployeeStorePreviewDto> findMyStoresByKeyword(
+            Pageable pageable, 
+            @Param("employeeId") java.util.UUID employeeId, 
+            @Param("keyword") String keyword
+    );
 }
 </file>
 
@@ -1541,10 +1473,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import com.nss.pibblest.modules.stores.api.dtos.StoreDto;
 import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
 import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
+import com.nss.pibblest.modules.stores.api.dtos.EmployeeStorePreviewDto;
 import com.nss.pibblest.modules.stores.internal.core.exceptions.StoreNotFound;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreRepository;
@@ -1553,6 +1488,7 @@ import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.createStore.CreateStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.deleteStore.DeleteStoreResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetAllStoresResponse;
+import com.nss.pibblest.modules.stores.internal.web.requests.stores.getAllStores.GetMyStoresResponse;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreRequest;
 import com.nss.pibblest.modules.stores.internal.web.requests.updateStore.UpdateStoreResponse;
 import com.nss.pibblest.modules.tags.api.dto.TagDto;
@@ -1631,6 +1567,39 @@ public class StoreService {
 
         GetAllStoresResponse response = new GetAllStoresResponse(storesPage);
         return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
+    @Transactional(readOnly = true)
+    public ResponseEntity<GetMyStoresResponse> searchMyStores(String keyword, Pageable pageable) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        java.util.UUID authenticatedEmployeeId = java.util.UUID.fromString((String) auth.getPrincipal());
+        Locale locale = LocaleContextHolder.getLocale();
+
+        String safeKeyword = "%" + (keyword != null ? keyword.trim() : "") + "%";
+
+        Page<EmployeeStorePreviewDto> storesPage = storeRepository.findMyStoresByKeyword(pageable, authenticatedEmployeeId, safeKeyword);
+
+        List<Long> storeIds = storesPage.getContent().stream()
+                .map(EmployeeStorePreviewDto::getId)
+                .collect(Collectors.toList());
+
+        if (!storeIds.isEmpty()) {
+            List<StoreTagEntity> storeTags = storeTagRepository.findTagsByStoreIds(storeIds);
+
+            Map<Long, List<TagDto>> tagsByStore = storeTags.stream()
+                    .collect(Collectors.groupingBy(
+                            st -> st.getStoreEntity().getId(),
+                            Collectors.mapping(st -> new TagDto(st.getTagEntity().getName(), st.getTagEntity().getId(), 0L), Collectors.toList())
+                    ));
+
+            storesPage.forEach(dto -> {
+                dto.setTags(tagsByStore.getOrDefault(dto.getId(), new ArrayList<>()));
+                String localizedTime = getLocalizedOperatingTime(dto.getCreatedAt(), locale);
+                dto.setOperatinTime(localizedTime);
+            });
+        }
+
+        return ResponseEntity.status(HttpStatus.OK).body(new GetMyStoresResponse(storesPage));
     }
 
     @Transactional

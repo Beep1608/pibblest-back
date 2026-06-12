@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import com.nss.pibblest.modules.stores.api.dtos.StorePreviewDto;
 import com.nss.pibblest.modules.stores.api.dtos.StoreSimpleDto;
+import com.nss.pibblest.modules.stores.api.dtos.EmployeeStorePreviewDto;
 
 @Repository
 public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
@@ -87,5 +88,26 @@ public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
     Optional<StorePreviewDto> findStorePreviewById(
             @Param("storeId") Long storeId, 
             @Param("startOfDay") ZonedDateTime startOfDay
+    );
+
+    @Query("""
+     SELECT new com.nss.pibblest.modules.stores.api.dtos.EmployeeStorePreviewDto(
+        s.id,
+        s.name,
+        s.address,
+        s.status,
+        s.createdAt
+     )
+     FROM StoreEntity s
+     JOIN EmployeeStoreEntity es ON es.store.id = s.id
+     WHERE es.employee.id = :employeeId
+       AND es.isActive = true
+       AND s.deletedAt IS NULL
+       AND LOWER(s.name) LIKE LOWER(:keyword)
+    """)
+    Page<EmployeeStorePreviewDto> findMyStoresByKeyword(
+            Pageable pageable, 
+            @Param("employeeId") java.util.UUID employeeId, 
+            @Param("keyword") String keyword
     );
 }

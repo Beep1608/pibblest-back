@@ -58,6 +58,7 @@ public class JwtService {
 
         String tokenId = UUID.randomUUID().toString();
 
+        System.out.println("Expiracion: "+jwtExpiration);
         return  Jwts.builder()
                 .claims(extraClaims)
                 .subject(username)
