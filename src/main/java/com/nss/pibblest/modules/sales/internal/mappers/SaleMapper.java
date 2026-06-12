@@ -12,6 +12,7 @@ import com.nss.pibblest.modules.sales.internal.infrastructure.data.SaleEntity;
 public interface SaleMapper {
 
     @Mapping(source = "store.id", target = "storeId")
+    @Mapping(source = "employee.username", target = "employeeUsername") // ✨ FIX: Extrae el username de la entidad Employee relacionada
     SaleDto toDto(SaleEntity entity);
 
     @Mapping(source = "product.id", target = "productId")

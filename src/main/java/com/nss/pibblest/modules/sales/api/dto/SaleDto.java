@@ -10,5 +10,6 @@ public record SaleDto(
     BigDecimal totalAmount,
     String status,
     ZonedDateTime createdAt,
+    String employeeUsername, // ✨ NUEVO: Nombre de usuario del creador de la venta
     List<SaleDetailDto> details
 ) {}

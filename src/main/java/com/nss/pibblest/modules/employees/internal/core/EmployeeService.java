@@ -23,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.nss.pibblest.modules.employees.api.dto.EmployeeDto;
+import com.nss.pibblest.modules.employees.api.dto.EmployeeSimpleDto;
 import com.nss.pibblest.modules.employees.internal.core.exceptions.EmployeeNotFound;
 import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity;
 import com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeePermissionEntity;
@@ -463,6 +464,32 @@ public class EmployeeService {
                 }
             }
         }
+    }
+
+    public ResponseEntity<List<EmployeeSimpleDto>> getSimpleEmployeesByStore(Long storeId) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) throw new AccessDeniedException("No autenticado");
+
+        boolean isOwner = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
+
+        if (!isOwner) {
+            UUID authenticatedEmployeeId = UUID.fromString((String) auth.getPrincipal());
+            EmployeeEntity authEmployee = employeeRepository.findById(authenticatedEmployeeId)
+                    .orElseThrow(() -> new AccessDeniedException("Información de sesión inválida."));
+
+            // Aislamiento: Validar que el empleado que consulta pertenezca activamente a la tienda objetivo
+            boolean isAssociated = authEmployee.getEmployeeStores().stream()
+                    .anyMatch(es -> es.getStore().getId().equals(storeId) && es.isActive());
+            
+            if (!isAssociated) {
+                throw new AccessDeniedException(messageSource.getMessage("error.employee.not.assigned.to.store", new Object[]{storeId}, LocaleContextHolder.getLocale()));
+            }
+        }
+
+        // Se trae la lista optimizada directamente desde la BD
+        List<EmployeeSimpleDto> employees = employeeRepository.findSimpleEmployeesByStoreId(storeId);
+        
+        return ResponseEntity.ok(employees);
     }
 
     private String generateBaseUserName(String name, String lastName){

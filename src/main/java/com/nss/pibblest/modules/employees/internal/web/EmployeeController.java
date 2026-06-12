@@ -1,5 +1,6 @@
 package com.nss.pibblest.modules.employees.internal.web;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.nss.pibblest.modules.employees.api.dto.EmployeeDto;
+import com.nss.pibblest.modules.employees.api.dto.EmployeeSimpleDto;
 import com.nss.pibblest.modules.employees.internal.core.EmployeeService;
 import com.nss.pibblest.modules.employees.internal.web.requests.createEmployee.CreateEmployeeRequest;
 import com.nss.pibblest.modules.employees.internal.web.requests.createEmployee.CreateEmployeeResponse;
@@ -91,5 +93,15 @@ public class EmployeeController {
     )
     public ResponseEntity<ResendActivationResponse> resendActivation(@PathVariable("id") UUID id) {
         return employeeService.resendActivationToken(id);
+    }
+
+    @GetMapping("/store/{storeId}/simple")
+    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
+    @Operation(
+        summary = "Listado simple de empleados por tienda", 
+        description = "Devuelve exclusivamente el ID y username de los empleados activos asignados a una sucursal específica. Retorno en formato de lista sin paginación."
+    )
+    public ResponseEntity<List<EmployeeSimpleDto>> getSimpleEmployeesByStore(@PathVariable("storeId") Long storeId) {
+        return employeeService.getSimpleEmployeesByStore(storeId);
     }
 }

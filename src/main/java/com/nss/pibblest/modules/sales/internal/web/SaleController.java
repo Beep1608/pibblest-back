@@ -1,6 +1,7 @@
 package com.nss.pibblest.modules.sales.internal.web;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -10,7 +11,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.time.ZonedDateTime;
 
 import com.nss.pibblest.modules.sales.api.dto.SaleDto;
 import com.nss.pibblest.modules.sales.internal.core.SaleService;
@@ -45,10 +49,13 @@ public class SaleController {
     )
     public ResponseEntity<GetSalesResponse> getSalesByStore(
             @PathVariable("storeId") Long storeId, 
-            @org.springframework.web.bind.annotation.RequestParam(value = "scope", defaultValue = "PERSONAL") String scope,
-            @org.springframework.web.bind.annotation.RequestParam(value = "employeeId", required = false) java.util.UUID targetEmployeeId,
+            @RequestParam(value = "scope", defaultValue = "PERSONAL") String scope,
+            @RequestParam(value = "employeeId", required = false) java.util.UUID targetEmployeeId,
+            // ✨ FIX Hallazgo #1: Inyección de parámetros de rangos de fecha opcionales
+            @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime startDate,
+            @RequestParam(value = "endDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) ZonedDateTime endDate,
             Pageable pageable) {
-        return saleService.getSalesByStore(storeId, scope, targetEmployeeId, pageable);
+        return saleService.getSalesByStore(storeId, scope, targetEmployeeId, startDate, endDate, pageable);
     }
 
     @GetMapping("/{id}")

@@ -164,54 +164,67 @@ public class SaleService {
     }
 
     // LISTADO FILTRADO POR AMBOS REQUISITOS (Scope ALL vs PERSONAL)
-    public ResponseEntity<GetSalesResponse> getSalesByStore(Long storeId, String scope, java.util.UUID targetEmployeeId, Pageable pageable) {
+    // ✨ FIX Hallazgo #1: Se añaden parámetros startDate y endDate a la firma del método
+    public ResponseEntity<GetSalesResponse> getSalesByStore(
+            Long storeId, 
+            String scope, 
+            java.util.UUID targetEmployeeId, 
+            ZonedDateTime startDate, 
+            ZonedDateTime endDate, 
+            Pageable pageable) {
+            
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UUID authenticatedEmployeeId = UUID.fromString((String) auth.getPrincipal());
+        Locale locale = LocaleContextHolder.getLocale();
         
         boolean isOwner = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
         
-        // REQUISITO 1: Si no es Owner, el empleado DEBE estar asociado de forma activa a la tienda obligatoriamente
         if (!isOwner) {
             com.nss.pibblest.modules.employees.internal.infrastructure.data.EmployeeEntity authEmployee = 
                     employeeRepository.findById(authenticatedEmployeeId)
-                    .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException("Empleado no encontrado"));
+                    .orElseThrow(() -> new org.springframework.security.access.AccessDeniedException(
+                            messageSource.getMessage("employee.not.found", null, locale)));
             
             boolean isAssociated = authEmployee.getEmployeeStores().stream()
                     .anyMatch(es -> es.getStore().getId().equals(storeId) && es.isActive());
             
             if (!isAssociated) {
-                throw new AccessDeniedException("No tienes acceso a los registros de esta tienda.");
+                throw new AccessDeniedException(
+                        messageSource.getMessage("sales.error.no.store.access", null, locale));
             }
         }
 
         Page<SaleEntity> salesPage;
+        // Evaluar si se especificó un rango de fechas completo
+        boolean hasDateFilter = (startDate != null && endDate != null);
 
-        // SOLUCIÓN AL BUG: Evaluamos estrictamente si el scope solicitado es ALL
         if ("ALL".equalsIgnoreCase(scope)) {
-            
-            // REQUISITO 2: Si es un empleado, validar que tenga la autoridad explícita de READ para esta tienda
             if (!isOwner) {
                 String requiredAuthority = "STORE_" + storeId + "_MODULE_SALES_READ";
                 boolean hasReadPermission = auth.getAuthorities().stream()
                         .anyMatch(a -> a.getAuthority().equals(requiredAuthority));
                 
                 if (!hasReadPermission) {
-                    throw new AccessDeniedException("No tienes privilegios para visualizar todas las ventas de esta tienda.");
+                    throw new AccessDeniedException(
+                            messageSource.getMessage("sales.error.no.read.privileges", null, locale));
                 }
             }
 
-            // NUEVA FUNCIONALIDAD: Si el alcance es ALL y se proporciona un employeeId, filtramos por ese usuario específico
             if (targetEmployeeId != null) {
-                salesPage = saleRepository.findByStoreIdAndEmployeeIdAndDeletedAtIsNull(storeId, targetEmployeeId, pageable);
+                salesPage = hasDateFilter 
+                    ? saleRepository.findByStoreIdAndEmployeeIdAndDeletedAtIsNullAndCreatedAtBetween(storeId, targetEmployeeId, startDate, endDate, pageable)
+                    : saleRepository.findByStoreIdAndEmployeeIdAndDeletedAtIsNull(storeId, targetEmployeeId, pageable);
             } else {
-                // Si no se envía un filtro de usuario, muestra todo el historial general de la tienda
-                salesPage = saleRepository.findByStoreIdAndDeletedAtIsNull(storeId, pageable);
+                salesPage = hasDateFilter
+                    ? saleRepository.findByStoreIdAndDeletedAtIsNullAndCreatedAtBetween(storeId, startDate, endDate, pageable)
+                    : saleRepository.findByStoreIdAndDeletedAtIsNull(storeId, pageable);
             }
             
         } else {
-            // SI EL SCOPE ES "PERSONAL" (Tanto para OWNER como para EMPLOYEE)
-            // Se fuerza el filtro utilizando el ID extraído directamente del token JWT autenticado
-            salesPage = saleRepository.findByStoreIdAndEmployeeIdAndDeletedAtIsNull(storeId, authenticatedEmployeeId, pageable);
+            // SI EL SCOPE ES "PERSONAL"
+            salesPage = hasDateFilter
+                ? saleRepository.findByStoreIdAndEmployeeIdAndDeletedAtIsNullAndCreatedAtBetween(storeId, authenticatedEmployeeId, startDate, endDate, pageable)
+                : saleRepository.findByStoreIdAndEmployeeIdAndDeletedAtIsNull(storeId, authenticatedEmployeeId, pageable);
         }
 
         Page<SaleDto> dtoPage = salesPage.map(saleMapper::toDto);

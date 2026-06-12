@@ -1,5 +1,6 @@
 package com.nss.pibblest.modules.sales.internal.infrastructure.data;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -18,6 +19,10 @@ public interface SaleRepository extends JpaRepository<SaleEntity, Long> {
 
     // NUEVO: Para empleados que solo pueden ver sus propias ventas en esa tienda
     Page<SaleEntity> findByStoreIdAndEmployeeIdAndDeletedAtIsNull(Long storeId, UUID employeeId, Pageable pageable);
+
+    // ✨ FIX Hallazgo #1: Nuevas variantes de consulta que soportan el rango de fechas entre startDate y endDate
+    Page<SaleEntity> findByStoreIdAndDeletedAtIsNullAndCreatedAtBetween(Long storeId, ZonedDateTime start, ZonedDateTime end, Pageable pageable);
+    Page<SaleEntity> findByStoreIdAndEmployeeIdAndDeletedAtIsNullAndCreatedAtBetween(Long storeId, UUID employeeId, ZonedDateTime start, ZonedDateTime end, Pageable pageable);
 
     Optional<SaleEntity> findByIdAndDeletedAtIsNull(Long id);
 }
