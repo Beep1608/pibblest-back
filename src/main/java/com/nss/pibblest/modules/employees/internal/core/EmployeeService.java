@@ -291,6 +291,13 @@ public class EmployeeService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isOwner = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
 
+        // Nadie puede eliminar su propio usuario: el principal del JWT es siempre el UUID
+        // de la entidad Employee (tanto para el OWNER sincronizado como para empleados).
+        String authenticatedUserId = (String) auth.getPrincipal();
+        if (authenticatedUserId != null && authenticatedUserId.equals(id.toString())) {
+            throw new AccessDeniedException(messageSource.getMessage("error.employee.cannot.delete.self", null, locale));
+        }
+
         EmployeeEntity employee = employeeRepository.findById(id)
                 .filter(e -> e.getDeletedAt() == null)
                 .orElseThrow(() -> new EmployeeNotFound("employee.not.found", new Object[]{id}, locale));
