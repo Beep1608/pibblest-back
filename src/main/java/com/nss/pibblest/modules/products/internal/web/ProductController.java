@@ -68,6 +68,12 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
+    @GetMapping("/barcode/{code}")
+    @PreAuthorize("hasRole('OWNER') or hasRole('EMPLOYEE')")
+    public ResponseEntity<ProductPreviewDto> getProductByBarcode(@PathVariable("code") String code) {
+        return productService.getProductByBarcode(code);
+    }
+
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('OWNER')")
     public ResponseEntity<UpdateProductResponse> editProduct(

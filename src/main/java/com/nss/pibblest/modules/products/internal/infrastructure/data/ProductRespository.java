@@ -21,6 +21,9 @@ public interface ProductRespository extends JpaRepository<ProductEntity, Long>{
     // Método seguro para buscar por ID excluyendo eliminados
     Optional<ProductEntity> findByIdAndDeletedAtIsNull(Long id);
 
+    // Método seguro para buscar por barcode excluyendo eliminados
+    Optional<ProductEntity> findByBarcodeAndDeletedAtIsNull(String barcode);
+
     // Actualizamos la consulta personalizada para excluir eliminados lógicamente
     @Query("SELECT p FROM ProductEntity p LEFT JOIN FETCH p.productTags pt LEFT JOIN FETCH pt.tagForProductsEntity WHERE p.id = :id AND p.deletedAt IS NULL")
     Optional<ProductEntity> findByIdWithTags(@Param("id") Long id);

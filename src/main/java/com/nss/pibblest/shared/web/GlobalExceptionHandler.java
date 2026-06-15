@@ -53,6 +53,13 @@ public class GlobalExceptionHandler {
         String errorTitle = messageSource.getMessage("error.database.conflict.title", null, currentLocale);
         String errorMessage = messageSource.getMessage("error.database.conflict.message", null, currentLocale);
 
+        if (ex.getCause() != null && ex.getCause().getCause() != null) {
+            String dbMessage = ex.getCause().getCause().getMessage();
+            if (dbMessage != null && dbMessage.contains("uq_products_barcode_notnull")) {
+                errorMessage = messageSource.getMessage("error.product.barcode.duplicate", null, currentLocale);
+            }
+        }
+
         Map<String, Object> response = new HashMap<>();
 
         response.put("status", HttpStatus.CONFLICT.value());

@@ -183,6 +183,21 @@ public class ProductService {
         ProductEntity product = productRespository.findByIdWithTags(id)
                 .orElseThrow(ProductNotFoundException::new);
 
+        validateProductAccess(product.getId());
+
+        return ResponseEntity.status(HttpStatus.OK).body(productMapper.toPreviewDto(product));
+    }
+
+    public ResponseEntity<ProductPreviewDto> getProductByBarcode(String barcode) {
+        ProductEntity product = productRespository.findByBarcodeAndDeletedAtIsNull(barcode)
+                .orElseThrow(ProductNotFoundException::new);
+
+        validateProductAccess(product.getId());
+
+        return ResponseEntity.status(HttpStatus.OK).body(productMapper.toPreviewDto(product));
+    }
+
+    private void validateProductAccess(Long productId) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         boolean isOwner = auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_OWNER"));
         
@@ -204,7 +219,7 @@ public class ProductService {
 
                 boolean productInMyStores = false;
                 for (Long sId : myStoreIds) {
-                    StoreProductId spId = new StoreProductId(sId, id);
+                    StoreProductId spId = new StoreProductId(sId, productId);
                     if (storeProductRepository.findById(spId).filter(sp -> sp.isIsActive()).isPresent()) {
                         productInMyStores = true;
                         break;
@@ -216,8 +231,6 @@ public class ProductService {
                 }
             }
         }
-
-        return ResponseEntity.status(HttpStatus.OK).body(productMapper.toPreviewDto(product));
     }
 
     @Transactional
