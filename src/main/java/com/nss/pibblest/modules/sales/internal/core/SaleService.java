@@ -32,6 +32,9 @@ import com.nss.pibblest.modules.sales.internal.web.requests.cancelSale.CancelSal
 import com.nss.pibblest.modules.sales.internal.web.requests.createSale.CreateSaleRequest;
 import com.nss.pibblest.modules.sales.internal.web.requests.createSale.CreateSaleResponse;
 import com.nss.pibblest.modules.sales.internal.web.requests.getSales.GetSalesResponse;
+import com.nss.pibblest.modules.sales.internal.web.requests.ticket.TicketRequest;
+import com.nss.pibblest.modules.sales.api.dto.TicketResponse;
+import com.nss.pibblest.modules.sales.api.dto.TicketLineItem;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreEntity;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductId;
 import com.nss.pibblest.modules.stores.internal.infrastructure.data.StoreProductEntity;
@@ -158,7 +161,7 @@ public class SaleService {
         SaleEntity savedSale = saleRepository.save(sale);
 
         storeNotificationHelper.notifyStoreChange(store.getId(), (String) auth.getPrincipal());
-        CreateSaleResponse response = new CreateSaleResponse(messageSource.getMessage("sales.done", null, locale));
+        CreateSaleResponse response = new CreateSaleResponse(messageSource.getMessage("sales.done", null, locale), savedSale.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -239,6 +242,44 @@ public class SaleService {
         verifyStorePermission(sale.getStore().getId(), "READ");
         
         return ResponseEntity.status(HttpStatus.OK).body(saleMapper.toDto(sale));
+    }
+
+    public ResponseEntity<TicketResponse> getTicket(TicketRequest request) {
+        Locale locale = LocaleContextHolder.getLocale();
+        SaleEntity sale = saleRepository.findByIdAndDeletedAtIsNull(request.getSaleId())
+                .orElseThrow(() -> new EntityNotFoundException(messageSource.getMessage("sales.not.found", new Object[]{request.getSaleId()}, locale)));
+
+        if (!sale.getStore().getId().equals(request.getStoreId())) {
+            throw new EntityNotFoundException(messageSource.getMessage("sales.not.found", new Object[]{request.getSaleId()}, locale));
+        }
+
+        TicketResponse response = new TicketResponse();
+        response.setSaleId(sale.getId().toString());
+        response.setTimestamp(sale.getCreatedAt() != null ? sale.getCreatedAt().toString() : ZonedDateTime.now().toString());
+
+        List<TicketLineItem> items = sale.getDetails().stream().map(detail -> {
+            TicketLineItem item = new TicketLineItem();
+            item.setDescription(detail.getProduct().getName());
+            item.setQuantity(detail.getQuantity());
+            item.setUnitPrice(detail.getUnitPrice());
+            item.setLineTotal(detail.getSubtotal());
+            return item;
+        }).toList();
+        response.setItems(items);
+
+        BigDecimal subtotal = sale.getDetails().stream()
+                .map(SaleDetailEntity::getSubtotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal taxRate = new BigDecimal("0.21");
+        BigDecimal taxAmount = subtotal.multiply(taxRate).setScale(2, java.math.RoundingMode.HALF_UP);
+        BigDecimal total = subtotal.add(taxAmount);
+
+        response.setSubtotal(subtotal);
+        response.setTaxRate(taxRate);
+        response.setTaxAmount(taxAmount);
+        response.setTotal(total);
+
+        return ResponseEntity.ok(response);
     }
 
     @Transactional

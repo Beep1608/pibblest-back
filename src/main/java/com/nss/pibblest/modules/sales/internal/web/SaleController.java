@@ -22,6 +22,8 @@ import com.nss.pibblest.modules.sales.internal.web.requests.cancelSale.CancelSal
 import com.nss.pibblest.modules.sales.internal.web.requests.createSale.CreateSaleRequest;
 import com.nss.pibblest.modules.sales.internal.web.requests.createSale.CreateSaleResponse;
 import com.nss.pibblest.modules.sales.internal.web.requests.getSales.GetSalesResponse;
+import com.nss.pibblest.modules.sales.internal.web.requests.ticket.TicketRequest;
+import com.nss.pibblest.modules.sales.api.dto.TicketResponse;
 
 import jakarta.validation.Valid;
 
@@ -39,6 +41,12 @@ public class SaleController {
     @PreAuthorize("hasRole('OWNER') or @authZ.check(#request.storeId, 'MODULE_SALES', 'CREATE')")
     public ResponseEntity<CreateSaleResponse> createSale(@Valid @RequestBody CreateSaleRequest request){
         return saleService.createSale(request);
+    }
+
+    @PostMapping("/ticket")
+    @PreAuthorize("hasRole('OWNER') or @authZ.check(#request.storeId, 'MODULE_SALES', 'CREATE')")
+    public ResponseEntity<TicketResponse> getTicket(@Valid @RequestBody TicketRequest request){
+        return saleService.getTicket(request);
     }
 
     @GetMapping("/store/{storeId}")
