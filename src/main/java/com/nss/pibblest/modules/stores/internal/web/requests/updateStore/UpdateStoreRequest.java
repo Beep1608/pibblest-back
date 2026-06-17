@@ -7,7 +7,16 @@ public class UpdateStoreRequest {
     private String name;
     private String address;
     private String status;
+    private String timezone;
     private Set<Long> tagsId;
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
 
     public String getName() {
         return name;

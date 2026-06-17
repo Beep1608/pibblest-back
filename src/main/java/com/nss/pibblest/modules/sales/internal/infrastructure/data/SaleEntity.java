@@ -39,6 +39,9 @@ public class SaleEntity {
     @Column(nullable=false, length=50)
     private String status = "COMPLETED";
 
+    @Column(name="currency_code", nullable=false, length=3)
+    private String currencyCode = "MXN";
+
     @Column(name="created_at", updatable=false)
     private ZonedDateTime createdAt;    
 
@@ -109,6 +112,14 @@ public class SaleEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getCurrencyCode() {
+        return currencyCode;
+    }
+
+    public void setCurrencyCode(String currencyCode) {
+        this.currencyCode = currencyCode;
     }
 
     public ZonedDateTime getCreatedAt() {

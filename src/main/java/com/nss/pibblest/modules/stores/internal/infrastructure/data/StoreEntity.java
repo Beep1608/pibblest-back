@@ -35,6 +35,9 @@ public class StoreEntity {
     @Column(name = "status")
     private String status;
 
+    @Column(name = "timezone")
+    private String timezone = "UTC";
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private ZonedDateTime createdAt;
@@ -79,6 +82,14 @@ public class StoreEntity {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
     }
 
     public String getAddress() {

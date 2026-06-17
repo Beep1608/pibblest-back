@@ -151,6 +151,8 @@ public class StoreService {
 
     @Transactional
     public ResponseEntity<CreateStoreResponse> createStore(CreateStoreRequest request) {
+        
+        validateTimezone(request.getTimezone());
 
         StoreEntity storeEntity = storeMapper.toEntity(request);
         StoreEntity newStoreEntity = storeRepository.save(storeEntity);
@@ -176,6 +178,8 @@ public class StoreService {
 
     @Transactional
     public ResponseEntity<UpdateStoreResponse> updateStore(Long id, UpdateStoreRequest request) {
+
+        validateTimezone(request.getTimezone());
 
         Locale locale = LocaleContextHolder.getLocale();
         String notFoundMessage = messageSource.getMessage("error.store.not.found", new Object[] { id }, locale);
@@ -233,6 +237,15 @@ public class StoreService {
 
         String message = messageSource.getMessage("store.deleted.success", new Object[] { store.getName() }, locale);
         return ResponseEntity.status(HttpStatus.OK).body(new DeleteStoreResponse(message));
+    }
+
+    private void validateTimezone(String timezone) {
+        if (timezone == null || timezone.isEmpty()) return;
+        try {
+            java.time.ZoneId.of(timezone);
+        } catch (java.time.DateTimeException e) {
+            throw new IllegalArgumentException("Invalid timezone: " + timezone);
+        }
     }
 
     private void validateTags(Set<Long> tagsId) {

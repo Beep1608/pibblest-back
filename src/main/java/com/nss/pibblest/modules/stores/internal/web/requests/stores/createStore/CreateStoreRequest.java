@@ -6,8 +6,17 @@ import com.nss.pibblest.shared.StoreStatus;
 public class CreateStoreRequest {
     private String name;
     private String address;
+    private String timezone;
     private StoreStatus status = StoreStatus.ACTIVE;
     private Set<Long> tagsId;
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
+    }
 
     public StoreStatus getStatus() {
         return status;
