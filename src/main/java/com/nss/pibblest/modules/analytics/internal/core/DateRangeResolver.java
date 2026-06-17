@@ -4,6 +4,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class DateRangeResolver {
     public record RangePair(LocalDateTime start, LocalDateTime end) {}
 
