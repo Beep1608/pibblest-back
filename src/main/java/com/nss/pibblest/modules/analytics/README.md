@@ -9,12 +9,12 @@ The analytics module provides read-only aggregation services for owner-level dat
 
 ## Endpoints
 
-- `GET /api/analytics/revenue`
+- `GET /api/analytics/sales-volume`
 - `GET /api/analytics/sales-count`
+- `GET /api/analytics/average-ticket-value`
 - `GET /api/analytics/best-selling-products`
 - `GET /api/analytics/peak-hours`
-- `GET /api/analytics/store-performance`
-- `GET /api/analytics/product-performance`
+- `GET /api/analytics/top-stores`
 
 ## Data Model
 
