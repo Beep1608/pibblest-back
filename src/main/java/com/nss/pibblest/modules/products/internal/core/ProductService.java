@@ -104,16 +104,19 @@ public class ProductService {
     public ResponseEntity<CreateProductResponse> createProduct(CreateProductRequest request) {
         // Validación de permisos para la creación de un producto maestro en el catálogo
         ProductEntity productRequest = productMapper.toEntity(request);
-        ProductEntity newProduct = productRespository.save(productRequest);
 
+        // Se arman las asociaciones de tags mientras la entidad sigue siendo transitoria:
+        // su colección productTags es aún un ArrayList plano (no un PersistentBag de Hibernate),
+        // así que no requiere sesión activa. El CascadeType.ALL las persiste junto al producto.
         if (request.getTagsId() != null && !request.getTagsId().isEmpty()) {
             validateTags(request.getTagsId());
             for (Long tagId : request.getTagsId()) {
                 TagForProductsEntity tag = tagForProductsRepository.getReferenceById(tagId);
-                newProduct.getProductTags().add(new TagProductEntity(newProduct, tag));
+                productRequest.getProductTags().add(new TagProductEntity(productRequest, tag));
             }
-            newProduct = productRespository.save(newProduct);
         }
+
+        ProductEntity newProduct = productRespository.save(productRequest);
 
         CreateProductResponse response = new CreateProductResponse(newProduct.getId(), "Su producto fue registrado");
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

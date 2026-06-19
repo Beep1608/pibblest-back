@@ -155,16 +155,19 @@ public class StoreService {
         validateTimezone(request.getTimezone());
 
         StoreEntity storeEntity = storeMapper.toEntity(request);
-        StoreEntity newStoreEntity = storeRepository.save(storeEntity);
 
+        // Se arman las asociaciones de tags mientras la entidad sigue siendo transitoria:
+        // su colección storeTags es aún un ArrayList plano (no un PersistentBag de Hibernate),
+        // así que no requiere sesión activa. El CascadeType.ALL las persiste junto a la tienda.
         if (request.getTagsId() != null && !request.getTagsId().isEmpty()) {
             validateTags(request.getTagsId());
             for (Long tagId : request.getTagsId()) {
                 TagEntity tag = tagRepository.getReferenceById(tagId);
-                newStoreEntity.getStoreTags().add(new StoreTagEntity(newStoreEntity, tag));
+                storeEntity.getStoreTags().add(new StoreTagEntity(storeEntity, tag));
             }
-            newStoreEntity = storeRepository.save(newStoreEntity);
         }
+
+        StoreEntity newStoreEntity = storeRepository.save(storeEntity);
 
         // Hallazgo #3: Retorna el objeto DTO completo mapeado
         StoreDto storeDto = storeMapper.toDto(newStoreEntity);
