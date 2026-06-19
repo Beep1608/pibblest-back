@@ -16,6 +16,7 @@ public class StorePreviewDto {
     private String name;
     private String address;
     private String status;
+    private String timezone;
     private Long totalProducts;
     private Long currentQuantityOfProducts;
     private Long salesOfToday;
@@ -34,7 +35,8 @@ public class StorePreviewDto {
             Long totalProducts, Long currentQuantityOfProducts,
             Long salesOfToday, BigDecimal totalSalesRevenue,
             Long employees,
-            ZonedDateTime createdAt) {
+            ZonedDateTime createdAt,
+            String timezone) {
         this.id = id;
         this.name = name;
         this.address = address;
@@ -45,6 +47,7 @@ public class StorePreviewDto {
         this.totalSalesRevenue = totalSalesRevenue != null ? totalSalesRevenue : BigDecimal.ZERO;
         this.employees = employees;
         this.createdAt = createdAt;
+        this.timezone = timezone;
         this.growthFromStart = calculateDailyGrowth(createdAt);
     }
 
@@ -81,6 +84,14 @@ public class StorePreviewDto {
 
     public void setStatus(String status) {
         this.status = status;
+    }
+
+    public String getTimezone() {
+        return timezone;
+    }
+
+    public void setTimezone(String timezone) {
+        this.timezone = timezone;
     }
 
     public Long getTotalProducts() {

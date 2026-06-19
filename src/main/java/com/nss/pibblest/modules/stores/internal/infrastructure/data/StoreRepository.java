@@ -31,11 +31,12 @@ public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
         (SELECT COUNT(sa) FROM SaleEntity sa WHERE sa.store.id = s.id AND sa.createdAt >= :startOfDay),
         (SELECT SUM(sa.totalAmount) FROM SaleEntity sa WHERE sa.store.id = s.id),
         (SELECT COUNT(es) FROM EmployeeStoreEntity es WHERE es.store.id = s.id AND es.isActive = true),
-        s.createdAt
+        s.createdAt,
+        s.timezone
      )        
     FROM StoreEntity s 
     LEFT JOIN StoreProductEntity sp ON sp.store.id = s.id AND sp.isActive = true
-    GROUP BY s.id, s.name, s.address, s.status, s.createdAt
+    GROUP BY s.id, s.name, s.address, s.status, s.createdAt, s.timezone
     """)
     Page<StorePreviewDto> findStorePreviewInfo(Pageable pageable, @Param("startOfDay") ZonedDateTime startOfDay);
 
@@ -50,12 +51,13 @@ public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
         (SELECT COUNT(sa) FROM SaleEntity sa WHERE sa.store.id = s.id AND sa.createdAt >= :startOfDay),
         (SELECT SUM(sa.totalAmount) FROM SaleEntity sa WHERE sa.store.id = s.id),
         (SELECT COUNT(es) FROM EmployeeStoreEntity es WHERE es.store.id = s.id AND es.isActive = true),
-        s.createdAt AS createdAt
+        s.createdAt AS createdAt,
+        s.timezone
      )        
     FROM StoreEntity s 
     LEFT JOIN StoreProductEntity sp ON sp.store.id = s.id AND sp.isActive = true
     WHERE s.deletedAt IS NULL AND LOWER(s.name) LIKE LOWER(:keyword)
-    GROUP BY s.id, s.name, s.address, s.status, s.createdAt
+    GROUP BY s.id, s.name, s.address, s.status, s.createdAt, s.timezone
     """)
     Page<StorePreviewDto> findStorePreviewInfoByKeyword(Pageable pageable, @Param("startOfDay") ZonedDateTime startOfDay, @Param("keyword") String keyword);
 
@@ -78,12 +80,13 @@ public interface  StoreRepository extends JpaRepository<StoreEntity, Long> {
         (SELECT COUNT(sa) FROM SaleEntity sa WHERE sa.store.id = s.id AND sa.createdAt >= :startOfDay),
         (SELECT SUM(sa.totalAmount) FROM SaleEntity sa WHERE sa.store.id = s.id),
         (SELECT COUNT(es) FROM EmployeeStoreEntity es WHERE es.store.id = s.id AND es.isActive = true),
-        s.createdAt
+        s.createdAt,
+        s.timezone
      )        
     FROM StoreEntity s 
     LEFT JOIN StoreProductEntity sp ON sp.store.id = s.id AND sp.isActive = true
     WHERE s.id = :storeId
-    GROUP BY s.id, s.name, s.address, s.status, s.createdAt
+    GROUP BY s.id, s.name, s.address, s.status, s.createdAt, s.timezone
     """)
     Optional<StorePreviewDto> findStorePreviewById(
             @Param("storeId") Long storeId, 

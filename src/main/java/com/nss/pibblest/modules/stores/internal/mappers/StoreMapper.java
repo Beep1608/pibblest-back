@@ -26,6 +26,7 @@ public interface  StoreMapper {
     @Mapping(target= "createdAt", ignore=true)
     @Mapping(target= "updatedAt", ignore=true)
     @Mapping(target= "deletedAt", ignore=true)
+    @Mapping(target= "timezone", source="timezone", defaultValue="UTC")
     StoreEntity toEntity(CreateStoreRequest request);
 
     @Mapping(target="createdAt", source="createdAt", dateFormat="dd/MM/yyyy")
